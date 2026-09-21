@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#22211f">
+  <title>日本五人行 · 2026 秋</title>
+  <style>
+    :root {
+      --ink: #22211f;
+      --muted: #686762;
+      --paper: #f4f6f5;
+      --surface: #ffffff;
+      --line: #d9ddda;
+      --red: #bd3b32;
+      --red-soft: #f7e8e6;
+      --green: #26715c;
+      --green-soft: #e7f2ed;
+      --blue: #2f648c;
+      --blue-soft: #e8f0f7;
+      --gold: #9b6b13;
+      --gold-soft: #f7efdd;
+      --shadow: 0 10px 28px rgba(22, 25, 23, .08);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 15px/1.65 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      letter-spacing: 0;
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    button, summary, input { font: inherit; }
+    button { letter-spacing: 0; }
+    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(47, 100, 140, .32);
+      outline-offset: 2px;
+    }
+    .skip-link { position: fixed; left: 12px; top: -60px; z-index: 99; padding: 8px 12px; background: #fff; }
+    .skip-link:focus { top: 12px; }
+    .shell { width: min(100% - 28px, 1080px); margin-inline: auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      background: rgba(34, 33, 31, .95);
+      color: #fff;
+      backdrop-filter: blur(12px);
+    }
+    .topbar-inner { min-height: 54px; display: flex; align-items: center; gap: 12px; }
+    .brand { font-weight: 750; white-space: nowrap; }
+    .topnav { margin-left: auto; display: flex; gap: 6px; }
+    .icon-button, .text-button {
+      min-height: 36px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 5px;
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+    }
+    .icon-button { width: 38px; font-size: 20px; line-height: 1; }
+    .text-button { padding: 6px 10px; font-size: 13px; }
+
+    .hero {
+      color: #fff;
+      background: #252522;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--red) 0 22%, #e2b84b 22% 37%, var(--green) 37% 64%, var(--blue) 64% 100%);
+    }
+    .hero-inner { min-height: 430px; padding: 58px 0 48px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 42px; align-items: center; }
+    .eyebrow { margin: 0 0 10px; color: #d4d4cf; font-size: 12px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; max-width: 620px; font-size: clamp(38px, 7vw, 72px); line-height: 1.03; letter-spacing: 0; }
+    .hero-copy { margin: 20px 0 0; max-width: 580px; color: #dfdfda; font-size: 17px; }
+    .hero-facts { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero-facts span { flex: 0 0 auto; padding: 6px 9px; border: 1px solid rgba(255,255,255,.24); border-radius: 4px; font-size: 13px; }
+    .hero-visual { position: relative; min-height: 280px; display: grid; place-items: center; }
+    .sun { width: 186px; aspect-ratio: 1; border-radius: 50%; background: #c74338; box-shadow: 0 0 0 18px rgba(199,67,56,.08); }
+    .rail {
+      position: absolute;
+      width: min(100%, 390px);
+      height: 150px;
+      border-top: 3px solid #f2f0e9;
+      border-radius: 50%;
+      transform: rotate(-13deg);
+    }
+    .rail::before, .rail::after { content: ""; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #f2f0e9; top: -7px; }
+    .rail::before { left: 25px; } .rail::after { right: 22px; }
+    .hero-route { position: absolute; bottom: 18px; right: 0; color: #f3f3ef; text-align: right; font-weight: 700; }
+
+    .band { padding: 54px 0; border-bottom: 1px solid var(--line); }
+    .band.white { background: var(--surface); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
+    .section-kicker { margin: 0 0 4px; color: var(--red); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    h2 { margin: 0; font-size: 28px; line-height: 1.2; letter-spacing: 0; }
+    h3 { margin: 0; font-size: 18px; line-height: 1.35; letter-spacing: 0; }
+    p { margin: 0; }
+    .subtle { color: var(--muted); }
+
+    .focus-panel {
+      margin-top: -34px;
+      position: relative;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 22px;
+      padding: 24px;
+      border-left: 5px solid var(--red);
+      background: #fff;
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+    .focus-panel > *, .booking-grid > *, .two-col > *, .day-title, .event > div { min-width: 0; }
+    .focus-title { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+    #nextTitle { margin-top: 5px; font-size: 24px; font-weight: 780; line-height: 1.25; }
+    #nextMeta { margin-top: 6px; color: var(--muted); }
+    .countdown { display: grid; grid-template-columns: repeat(4, 58px); gap: 7px; align-self: center; max-width: 100%; }
+    .count-cell { text-align: center; padding: 9px 5px; border-radius: 5px; background: var(--ink); color: #fff; }
+    .count-cell b { display: block; font-size: 21px; font-variant-numeric: tabular-nums; }
+    .count-cell span { display: block; color: #bdbdb8; font-size: 10px; }
+    .local-time { margin-top: 9px; text-align: right; color: var(--muted); font-size: 12px; }
+
+    .status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border-radius: 999px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .confirmed { color: var(--green); background: var(--green-soft); }
+    .pending { color: var(--gold); background: var(--gold-soft); }
+    .check { color: var(--blue); background: var(--blue-soft); }
+    .risk { color: var(--red); background: var(--red-soft); }
+
+    .route-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 9px; scrollbar-width: thin; }
+    .route-tab { min-width: 62px; min-height: 38px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); cursor: pointer; }
+    .route-tab[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .route-board { position: relative; margin-top: 12px; min-height: 320px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #eef2f0; }
+    .route-board svg { display: block; width: 100%; height: 320px; }
+    .route-segment, .route-node { transition: opacity .18s ease; }
+    .route-segment.is-muted, .route-node.is-muted { opacity: .13; }
+    .route-actions { position: absolute; top: 12px; right: 12px; }
+    .map-open { min-height: 38px; padding: 6px 11px; border: 1px solid var(--ink); border-radius: 5px; background: #fff; cursor: pointer; }
+    #routeCaption { margin-top: 10px; color: var(--muted); font-size: 13px; }
+
+    .booking-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .booking { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .booking-top { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+    .booking-code { margin-top: 4px; color: var(--red); font-size: 22px; font-weight: 820; }
+    .booking p { margin-top: 8px; color: var(--muted); }
+    .booking strong { color: var(--ink); }
+
+    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .plain-button { min-height: 38px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); cursor: pointer; }
+    .days { display: grid; gap: 10px; }
+    details.day { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: clip; }
+    details.day[open] { box-shadow: 0 5px 18px rgba(22,25,23,.05); }
+    .day summary { display: grid; grid-template-columns: 72px 1fr auto; gap: 14px; align-items: center; padding: 18px; cursor: pointer; list-style: none; }
+    .day summary::-webkit-details-marker { display: none; }
+    .day summary::after { content: "+"; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-size: 19px; }
+    .day[open] summary::after { content: "−"; }
+    .day-num { color: var(--red); font-weight: 850; }
+    .day-num b { display: block; font-size: 23px; line-height: 1; }
+    .day-num span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .day-title strong { display: block; font-size: 18px; }
+    .day-title span { color: var(--muted); font-size: 13px; }
+    .day-body { padding: 0 18px 20px; border-top: 1px solid var(--line); }
+    .day-notice { margin: 16px 0 4px; padding: 10px 12px; border-left: 3px solid var(--gold); background: var(--gold-soft); font-size: 13px; }
+    .timeline { margin-top: 10px; }
+    .event { display: grid; grid-template-columns: 74px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid #e8ebe9; }
+    .event:last-child { border-bottom: 0; }
+    .time { color: var(--red); font-weight: 820; font-variant-numeric: tabular-nums; }
+    .event-title { font-weight: 750; }
+    .event-meta { margin-top: 3px; color: var(--muted); font-size: 13px; }
+    .event-tags { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .mini { padding: 2px 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 11px; }
+    .food-list { margin: 13px 0 0; padding-left: 19px; }
+    .food-list li + li { margin-top: 6px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 32px; }
+    .info-block { padding: 18px 0; border-top: 1px solid var(--line); }
+    .info-block:first-child, .info-block:nth-child(2) { border-top: 0; }
+    .info-block p, .info-block ul { margin-top: 8px; color: var(--muted); }
+    .info-block ul { padding-left: 18px; }
+    .room-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .room-table th, .room-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .room-table th { color: var(--muted); font-size: 12px; }
+
+    .task-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .task { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 13px 2px; border-bottom: 1px solid var(--line); }
+    .task input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--green); }
+    .task label { cursor: pointer; }
+    .task small { color: var(--muted); white-space: nowrap; }
+    .task.done label { color: var(--muted); text-decoration: line-through; }
+
+    .packing-head { margin-top: 42px; padding-top: 36px; border-top: 1px solid var(--line); }
+    .packing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .packing-group { padding: 17px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .packing-group h3 { margin-bottom: 9px; }
+    .packing-list { display: grid; gap: 0; }
+    .packing-item { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; padding: 9px 0; border-bottom: 1px solid #e8ebe9; }
+    .packing-item:last-child { border-bottom: 0; }
+    .packing-item input { width: 19px; height: 19px; margin-top: 2px; accent-color: var(--green); }
+    .packing-item label { min-width: 0; cursor: pointer; overflow-wrap: anywhere; }
+    .packing-item.done label { color: var(--muted); text-decoration: line-through; }
+
+    .budget-strip { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .budget-item { padding: 18px; border-right: 1px solid var(--line); }
+    .budget-item:last-child { border-right: 0; }
+    .budget-item b { display: block; margin-top: 4px; font-size: 20px; }
+
+    .source-list { margin: 0; padding-left: 20px; }
+    .source-list li + li { margin-top: 7px; }
+    .fine { margin-top: 16px; color: var(--muted); font-size: 12px; }
+    footer { padding: 28px 0 42px; color: var(--muted); font-size: 12px; }
+
+    dialog { width: min(94vw, 1000px); height: min(88vh, 760px); padding: 0; border: 0; border-radius: 8px; box-shadow: 0 22px 65px rgba(0,0,0,.35); }
+    dialog::backdrop { background: rgba(0,0,0,.68); }
+    .dialog-head { height: 58px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--line); background: #fff; }
+    .dialog-head strong { margin-right: auto; }
+    .zoom-button { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; font-size: 20px; }
+    .dialog-map { height: calc(100% - 58px); overflow: auto; background: #eef2f0; }
+    .dialog-map svg { width: 1100px; height: 640px; transform-origin: top left; transition: transform .16s ease; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 22px, 680px); }
+      .topnav .text-button { display: none; }
+      .hero-inner { min-height: 520px; padding: 42px 0 38px; grid-template-columns: 1fr; gap: 10px; }
+      h1 { font-size: 46px; }
+      .hero-visual { min-height: 185px; }
+      .sun { width: 142px; }
+      .rail { width: 300px; height: 105px; }
+      .focus-panel { grid-template-columns: 1fr; padding: 19px; }
+      #nextTitle { font-size: 21px; }
+      .countdown { width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .local-time { text-align: left; }
+      .band { padding: 42px 0; }
+      .section-head { align-items: start; flex-direction: column; }
+      .booking-grid { grid-template-columns: 1fr; }
+      .packing-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; gap: 0; }
+      .info-block:nth-child(2) { border-top: 1px solid var(--line); }
+      .budget-strip { grid-template-columns: 1fr 1fr; }
+      .budget-item { border-bottom: 1px solid var(--line); }
+      .budget-item:nth-child(2) { border-right: 0; }
+      .budget-item:nth-child(3), .budget-item:nth-child(4) { border-bottom: 0; }
+      .day summary { grid-template-columns: 58px 1fr auto; gap: 9px; padding: 16px 12px; }
+      .day-title strong { font-size: 16px; }
+      .day-body { padding: 0 12px 16px; }
+      .event { grid-template-columns: 62px 1fr; gap: 10px; }
+      .task { grid-template-columns: auto 1fr; }
+      .task small { grid-column: 2; }
+      .room-table { font-size: 13px; }
+    }
+
+    @media (max-width: 390px) {
+      .brand { font-size: 13px; }
+      h1 { font-size: 40px; }
+      .hero-copy { font-size: 15px; }
+      .countdown { gap: 4px; }
+      .count-cell { padding-inline: 2px; }
+      .count-cell b { font-size: 18px; }
+      .budget-strip { grid-template-columns: 1fr; }
+      .budget-item { border-right: 0; border-bottom: 1px solid var(--line) !important; }
+      .budget-item:last-child { border-bottom: 0 !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+
+    @media print {
+      .topbar, .toolbar, .route-tabs, .map-open, dialog { display: none !important; }
+      body { background: #fff; font-size: 12px; }
+      .hero { color: #000; background: #fff; }
+      .hero-visual { display: none; }
+      .hero-inner { min-height: auto; padding: 20px 0; grid-template-columns: 1fr; }
+      .hero-copy, .eyebrow { color: #333; }
+      .focus-panel { margin-top: 0; box-shadow: none; }
+      details.day:not([open]) > *:not(summary) { display: block; }
+      .band { padding: 24px 0; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到行程正文</a>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand">日本五人行 · 2026</div>
+      <nav class="topnav" aria-label="页面工具">
+        <button class="text-button" id="collapseTop" type="button">收起每日行程</button>
+        <button class="icon-button" id="openMapTop" type="button" title="打开路线大图" aria-label="打开路线大图">⌖</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="shell hero-inner">
+        <div>
+          <p class="eyebrow">Osaka · Aomori · Akita · Tokyo</p>
+          <h1>北上日本，<br>七日五人行</h1>
+          <p class="hero-copy">从大阪霓虹与 USJ，一路去弘前、角馆、田泽湖和大曲花火，最后乘秋田新干线抵达东京。</p>
+          <div class="hero-facts" aria-label="旅程概要">
+            <span>2026.09.28-10.04</span><span>7 天 6 晚</span><span>5 人</span><span>香港出发</span><span>大阪进 · 东京出</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="sun"></div><div class="rail"></div>
+          <div class="hero-route">HKG → KIX → AOJ<br>秋田新干线 → NRT → HKG</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell" aria-labelledby="focusHeading">
+      <div class="focus-panel">
+        <div>
+          <div class="focus-title" id="focusHeading">此刻关注 · 下一个行程事件</div>
+          <div id="nextTitle" aria-live="polite">正在计算...</div>
+          <div id="nextMeta">日本当地时间为基准</div>
+        </div>
+        <div>
+          <div class="countdown" aria-label="倒计时">
+            <div class="count-cell"><b id="cdDays">--</b><span>天</span></div>
+            <div class="count-cell"><b id="cdHours">--</b><span>时</span></div>
+            <div class="count-cell"><b id="cdMinutes">--</b><span>分</span></div>
+            <div class="count-cell"><b id="cdSeconds">--</b><span>秒</span></div>
+          </div>
+          <div class="local-time" id="japanClock">日本时间 --:--</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="overview">
+      <div class="shell">
+        <div class="section-head">
+          <div><p class="section-kicker">Route Atlas</p><h2>路线总览</h2></div>
+          <p class="subtle">非比例示意 · 点击日期聚焦当日路线</p>
+        </div>
+        <div class="route-tabs" role="group" aria-label="路线日期筛选">
+          <button class="route-tab" type="button" data-filter="all" aria-pressed="true">总览</button>
+          <button class="route-tab" type="button" data-filter="d1" aria-pressed="false">D1</button>
+          <button class="route-tab" type="button" data-filter="d2" aria-pressed="false">D2</button>
+          <button class="route-tab" type="button" data-filter="d3" aria-pressed="false">D3</button>
+          <button class="route-tab" type="button" data-filter="d4" aria-pressed="false">D4</button>
+          <button class="route-tab" type="button" data-filter="d5" aria-pressed="false">D5</button>
+          <button class="route-tab" type="button" data-filter="d6" aria-pressed="false">D6</button>
+          <button class="route-tab" type="button" data-filter="d7" aria-pressed="false">D7</button>
+        </div>
+        <div class="route-board">
+          <svg viewBox="0 0 1000 320" role="img" aria-labelledby="mapTitle mapDesc">
+            <title id="mapTitle">日本五人行城市路线示意</title>
+            <desc id="mapDesc">从香港飞大阪，经青森、弘前、角馆、田泽湖、秋田、大曲到东京和成田，再飞回香港。</desc>
+            <g fill="none" stroke-linecap="round" stroke-width="6">
+              <path class="route-segment" data-day="d1" d="M85 250 C150 215 185 205 245 214" stroke="#bd3b32" stroke-dasharray="10 10"/>
+              <path class="route-segment" data-day="d2" d="M245 214 C277 224 294 233 318 238" stroke="#9b6b13"/>
+              <path class="route-segment" data-day="d3" d="M245 214 C410 255 595 185 664 90" stroke="#2f648c" stroke-dasharray="10 10"/>
+              <path class="route-segment" data-day="d4" d="M664 90 C635 109 621 126 650 145 C675 157 696 142 710 121" stroke="#26715c"/>
+              <path class="route-segment" data-day="d5" d="M710 121 C690 182 652 217 619 231" stroke="#bd3b32"/>
+              <path class="route-segment" data-day="d5" d="M619 231 C584 248 548 252 515 247" stroke="#bd3b32"/>
+              <path class="route-segment" data-day="d6" d="M515 247 C537 216 555 196 579 182 C557 206 535 229 515 247" stroke="#9b6b13"/>
+              <path class="route-segment" data-day="d6" d="M579 182 C592 210 611 232 635 247" stroke="#9b6b13"/>
+              <path class="route-segment" data-day="d6" d="M635 247 C596 262 554 261 515 247" stroke="#9b6b13"/>
+              <path class="route-segment" data-day="d7" d="M515 247 C420 218 366 180 342 151" stroke="#2f648c"/>
+              <path class="route-segment" data-day="d7" d="M342 151 C313 144 287 143 260 149" stroke="#2f648c"/>
+              <path class="route-segment" data-day="d7" d="M260 149 C198 191 141 226 85 250" stroke="#2f648c" stroke-dasharray="10 10"/>
+            </g>
+            <g font-family="system-ui, sans-serif" font-size="13" text-anchor="middle">
+              <g class="route-node" data-days="d1 d7"><circle cx="85" cy="250" r="10" fill="#22211f"/><text x="85" y="280">香港</text></g>
+              <g class="route-node" data-days="d1 d2 d3"><circle cx="245" cy="214" r="10" fill="#bd3b32"/><text x="245" y="197">大阪</text></g>
+              <g class="route-node" data-days="d2"><circle cx="318" cy="238" r="8" fill="#9b6b13"/><text x="318" y="267">USJ</text></g>
+              <g class="route-node" data-days="d3"><circle cx="664" cy="90" r="10" fill="#2f648c"/><text x="664" y="71">青森空港</text></g>
+              <g class="route-node" data-days="d3 d4"><circle cx="650" cy="145" r="9" fill="#26715c"/><text x="626" y="170">弘前</text></g>
+              <g class="route-node" data-days="d4 d5"><circle cx="710" cy="121" r="9" fill="#26715c"/><text x="741" y="126">青森</text></g>
+              <g class="route-node" data-days="d5"><circle cx="619" cy="231" r="9" fill="#bd3b32"/><text x="619" y="260">角馆</text></g>
+              <g class="route-node" data-days="d5 d6 d7"><circle cx="515" cy="247" r="10" fill="#22211f"/><text x="488" y="278">秋田</text></g>
+              <g class="route-node" data-days="d6"><circle cx="579" cy="182" r="9" fill="#9b6b13"/><text x="579" y="163">田泽湖</text></g>
+              <g class="route-node" data-days="d6"><circle cx="635" cy="247" r="9" fill="#9b6b13"/><text x="665" y="270">大曲</text></g>
+              <g class="route-node" data-days="d7"><circle cx="342" cy="151" r="10" fill="#2f648c"/><text x="342" y="132">东京</text></g>
+              <g class="route-node" data-days="d7"><circle cx="260" cy="149" r="9" fill="#2f648c"/><text x="260" y="130">成田</text></g>
+            </g>
+          </svg>
+          <div class="route-actions"><button class="map-open" id="openMap" type="button">打开大图</button></div>
+        </div>
+        <p id="routeCaption">全程：香港 → 大阪 → 青森/弘前 → 角馆 → 秋田/田泽湖/大曲 → 东京/成田 → 香港</p>
+      </div>
+    </section>
+
+    <section class="band white" id="bookings">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Confirmed</p><h2>预订与关键票券</h2></div><p class="subtle">“建议班次”不等于已出票</p></div>
+        <div class="booking-grid">
+          <article class="booking"><div class="booking-top"><div><h3>去程航班</h3><div class="booking-code">UO686</div></div><span class="status confirmed">已确认</span></div><p><strong>09/28</strong> HKG 08:45 → KIX 13:30<br>香港时间起飞，日本时间抵达</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>日本国内航班</h3><div class="booking-code">NH1853</div></div><span class="status confirmed">已确认</span></div><p><strong>09/30</strong> 伊丹南航站楼 14:10 → 青森 15:50<br>建议 12:00 到机场</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>回程航班</h3><div class="booking-code">UO653</div></div><span class="status confirmed">已确认</span></div><p><strong>10/04</strong> NRT 21:35 → HKG 10/05 01:30<br>返港跨夜</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>USJ</h3><div class="booking-code">5 人</div></div><span class="status confirmed">已购买</span></div><p>门票与 Express Pass 已购；超级任天堂世界入场方式已确认。票面时段优先。</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>大曲花火</h3><div class="booking-code">秋之章</div></div><span class="status confirmed">已购买</span></div><p>五人观览席；10/03 15:00 开门，18:00-19:30 燃放。</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>跨城列车</h3><div class="booking-code">5 人连座</div></div><span class="status pending">待预订</span></div><p>Hayabusa 4、Komachi 95 / 27 / 14 / 15 / 6、N'EX 45。</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>大阪民宿</h3><div class="booking-code">2 晚</div></div><span class="status confirmed">已确认</span></div><p><a href="https://www.google.com/maps/search/?api=1&query=3-chome-12-18+Shimaya+UNIHAKU+Fukuda+Konohana+Osaka+554-0024" target="_blank" rel="noopener">ユニハク UNIHAKU 福田</a><br>09/28-09/30<br>3-chōme-12-18 Shimaya, 此花区, 大阪 554-0024, 日本</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>Hotel Apple Land</h3><div class="booking-code">3 间</div></div><span class="status confirmed">已确认</span></div><p><a href="https://www.google.com/maps/search/?api=1&query=Hotel+Apple+Land+Machii-minamida+166-3+Hirakawa+Aomori" target="_blank" rel="noopener">Hotel Apple Land</a><br>09/30-10/01 · 3 间大床房<br>平川市, Machii-minamida 166-3</p></article>
+          <article class="booking"><div class="booking-top"><div><h3>青森 / 秋田民宿</h3><div class="booking-code">3 晚</div></div><span class="status confirmed">已确认</span></div><p><a href="https://www.google.com/maps/search/?api=1&query=1-chome-16-9+Shinoda+Aomori+Aomori+038-0011" target="_blank" rel="noopener">青森 Shinoda 民宿</a><br>10/01-10/02<br>1-chōme-16-9 Shinoda, 青森, Aomori 038-0011, 日本<br><a href="https://www.google.com/maps/search/?api=1&query=10-62+Tegatayamazakicho+Akita+Akita+010-0854" target="_blank" rel="noopener">秋田 Akita 民宿</a><br>10/02-10/04<br>10-62 Tegatayamazakichō, Akita, Akita 010-0854, 日本</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="itinerary">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Day by Day</p><h2>逐日行程</h2></div><p class="subtle">日本境内均为日本当地时间</p></div>
+        <div class="toolbar"><button class="plain-button" id="toggleDays" type="button">全部展开</button></div>
+        <div class="days">
+          <details class="day" id="day1" open>
+            <summary><div class="day-num"><b>D1</b><span>09/28 周一</span></div><div class="day-title"><strong>香港 → 大阪 · 道顿堀夜行</strong><span>抵达、入住、霓虹与晚餐</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">晚餐仍待定。18:00-22:00 只选一家主餐，其余作为小吃或备选。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">05:45</div><div><div class="event-title">香港国际机场集合</div><div class="event-meta">建议时间 · 办理值机、托运行李与早餐。起飞时间为香港当地时间。</div></div></div>
+                <div class="event"><div class="time">08:45</div><div><div class="event-title">UO686 起飞</div><div class="event-meta">香港 HKG → 大阪关西 KIX，13:30 日本时间抵达。</div><div class="event-tags"><span class="mini">已确认</span><span class="mini">跨时区</span></div></div></div>
+                <div class="event"><div class="time">13:30</div><div><div class="event-title">入境、取行李</div><div class="event-meta">预计 60-90 分钟；五人通过海关后再统一离开到达层。</div></div></div>
+                <div class="event"><div class="time">15:00</div><div><div class="event-title">关西机场 → <a href="https://www.google.com/maps/search/?api=1&query=3-chome-12-18+Shimaya+UNIHAKU+Fukuda+Konohana+Osaka+554-0024" target="_blank" rel="noopener">此花区民宿</a></div><div class="event-meta">地址：3-chōme-12-18 Shimaya UNIHAKU 福田, 此花区, 大阪 554-0024, 日本。建议 JR 关空快速到西九条，转 JR 梦咲线；预计 75-90 分钟。</div></div></div>
+                <div class="event"><div class="time">17:20</div><div><div class="event-title">出发去难波 / 心斋桥</div><div class="event-meta">五人一起乘公共交通；18:00 前到达主餐附近。</div></div></div>
+                <div class="event"><div class="time">18:00</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Dotonbori+Shinsaibashi+Osaka" target="_blank" rel="noopener">道顿堀与心斋桥</a></div><div class="event-meta">晚餐、商业街、街头霓虹；22:00 前结束，次日早起去 USJ。</div>
+                  <ul class="food-list">
+                    <li><strong>主餐候选：</strong><a href="https://www.google.com/maps/search/?api=1&query=%E7%89%9B%E4%B8%B8+Higashishinsaibashi+2-8-26+Osaka" target="_blank" rel="noopener">牛丸</a>、<a href="https://www.google.com/maps/search/?api=1&query=%E5%A4%A7%E7%89%A7%E5%A0%B4+%E5%A4%A7%E9%98%AA%E5%8D%83%E6%97%A5%E5%89%8D%E5%BA%97" target="_blank" rel="noopener">大牧場</a>、<a href="https://www.google.com/maps/search/?api=1&query=%E5%8D%83%E6%88%BF+%E5%8D%83%E6%97%A5%E5%89%8D%E5%BA%97" target="_blank" rel="noopener">千房 千日前店</a>。</li>
+                    <li><strong>甜点 / 咖啡：</strong>MooKEN、HARBS、LILO COFFEE KISSA，顺路再去。</li>
+                    <li><strong>不排 D1：</strong>ラーメン家あかき周一休息且不在当晚动线。</li>
+                  </ul>
+                </div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day2">
+            <summary><div class="day-num"><b>D2</b><span>09/29 周二</span></div><div class="day-title"><strong>大阪环球影城全天</strong><span>任天堂 · 哈利波特 · 小黄人</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">官方营业 08:00-22:00。Express Pass 与任天堂世界票面时间优先，页面不虚构具体入场时段。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">06:40</div><div><div class="event-title">早餐后从民宿出发</div><div class="event-meta">轻装入园；门票、Express Pass、任天堂世界入场凭证提前截图并离线保存。</div></div></div>
+                <div class="event"><div class="time">07:15</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Universal+Studios+Japan" target="_blank" rel="noopener">USJ 门口集合</a></div><div class="event-meta">五人保持同一安检队列，入园后以票面预约时段倒排项目。</div></div></div>
+                <div class="event"><div class="time">08:00</div><div><div class="event-title">开园与重点区域</div><div class="event-meta">超级任天堂世界、哈利波特魔法世界、小黄人乐园。非预约项目放在两个票面时段之间。</div><div class="event-tags"><span class="mini">门票已购</span><span class="mini">Express 已购</span><span class="mini">任天堂入场已确认</span></div></div></div>
+                <div class="event"><div class="time">12:00</div><div><div class="event-title">错峰午餐</div><div class="event-meta">以 Express Pass 时间为准，优先选择不需远距离折返的园区餐厅。</div></div></div>
+                <div class="event"><div class="time">20:30</div><div><div class="event-title">评估体力，分批收尾</div><div class="event-meta">最晚 22:00 闭园；次日需收拾行李并前往伊丹机场，不强求关园。</div></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day3">
+            <summary><div class="day-num"><b>D3</b><span>09/30 周三</span></div><div class="day-title"><strong>大阪 → 青森 · 苹果温泉</strong><span>伊丹起飞、机场巴士、平川入住</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">Hotel Apple Land 的 16:45 弘前站接驳赶不上本航班；采用青森机场巴士 + 两辆出租车。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">09:00</div><div><div class="event-title">退房、整理行李</div><div class="event-meta">Marron 仅在位置顺路且不影响机场时间时作为早餐候选。</div></div></div>
+                <div class="event"><div class="time">10:30</div><div><div class="event-title">此花区 → 大阪伊丹机场</div><div class="event-meta">公共交通预计 60-90 分钟；五人带行李不临时改乘单辆普通出租车。</div></div></div>
+                <div class="event"><div class="time">12:00</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Osaka+Itami+Airport+South+Terminal" target="_blank" rel="noopener">伊丹机场南航站楼</a></div><div class="event-meta">ANA 国内线值机与托运行李；票面截止时间为准。</div></div></div>
+                <div class="event"><div class="time">14:10</div><div><div class="event-title">NH1853 伊丹 → 青森</div><div class="event-meta">15:50 抵达青森机场。</div><div class="event-tags"><span class="mini">已确认</span></div></div></div>
+                <div class="event"><div class="time">16:15</div><div><div class="event-title">青森机场 → 弘前机场巴士</div><div class="event-meta">官方 2026 年 9 月时刻；约 17:10 到弘前。1,600 JPY/人，支持交通 IC / 信用卡感应支付。航班延误时改搭后续班次。</div></div></div>
+                <div class="event"><div class="time">17:15</div><div><div class="event-title">弘前 → <a href="https://www.google.com/maps/search/?api=1&query=Hotel+Apple+Land+Machii-minamida+166-3+Hirakawa+Aomori" target="_blank" rel="noopener">Hotel Apple Land</a></div><div class="event-meta">地址：平川市, Machii-minamida 166-3。普通出租车分两辆，约 20 分钟。建议 A 车：转转、媛媛、恩浓；B 车：邱允、妹妹。</div><div class="event-tags"><span class="mini">预计两车</span></div></div></div>
+                <div class="event"><div class="time">18:00</div><div><div class="event-title">入住、晚餐与温泉</div><div class="event-meta">3 间大床房。确认订单是否含晚餐；若不含餐再从酒店附近选餐，不把 Daijun 强塞进当晚。</div></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day4">
+            <summary><div class="day-num"><b>D4</b><span>10/01 周四</span></div><div class="day-title"><strong>弘前公园 → 青森湾区</strong><span>城迹、神社、睡魔与苹果工房</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">酒店送站巴士须最晚 09/29 电话预约。WA RASSE 最晚 17:30 入馆，先看展再逛 A-FACTORY。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">09:30</div><div><div class="event-title">酒店免费巴士出发</div><div class="event-meta">09:50 到 JR 弘前站东口；取行李后先寄存在弘前站。</div></div></div>
+                <div class="event"><div class="time">10:20</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Hirosaki+Park" target="_blank" rel="noopener">弘前公园与弘前城</a></div><div class="event-meta">收费区域 09:00-17:00；园内散步并顺访<a href="https://www.google.com/maps/search/?api=1&query=Aomori+Gokoku+Shrine+Hirosaki" target="_blank" rel="noopener">青森县护国神社</a>。</div></div></div>
+                <div class="event"><div class="time">13:10</div><div><div class="event-title">弘前午餐、回站取行李</div><div class="event-meta">14:00 左右乘 JR 前往青森，具体车次在出发前复核。</div></div></div>
+                <div class="event"><div class="time">15:15</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Wa+Rasse+Aomori" target="_blank" rel="noopener">青森睡魔之家 WA RASSE</a></div><div class="event-meta">参观至 16:45；官方 09:00-18:00，最后入馆 17:30。</div></div></div>
+                <div class="event"><div class="time">16:50</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=A-FACTORY+Aomori" target="_blank" rel="noopener">A-FACTORY</a></div><div class="event-meta">苹果制品与伴手礼；官方 10:00-19:00，部分店铺时间不同。</div></div></div>
+                <div class="event"><div class="time">18:10</div><div><div class="event-title">入住<a href="https://www.google.com/maps/search/?api=1&query=1-chome-16-9+Shinoda+Aomori+Aomori+038-0011" target="_blank" rel="noopener">青森 Shinoda 民宿</a></div><div class="event-meta">地址：1-chōme-16-9 Shinoda, 青森, Aomori 038-0011, 日本。五人带行李，步行或两辆出租车；晚餐可从 Daijun 等候选中选一家并先确认五人座位与现金要求。</div></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day5">
+            <summary><div class="day-num"><b>D5</b><span>10/02 周五</span></div><div class="day-title"><strong>青森 → 角馆 → 秋田</strong><span>早班换乘、武家屋敷、秋田夜逛</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">这是全程最早的一天。角馆大件行李寄存容量必须提前确认；五人列车座位尽量连在一起。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">05:15</div><div><div class="event-title">从民宿前往青森站</div><div class="event-meta">04:55 起床，05:10 完成退房；预留步行或两辆出租车时间。</div></div></div>
+                <div class="event"><div class="time">05:41</div><div><div class="event-title">青森 → 新青森</div><div class="event-meta">JR 普通列车；到站后转新干线。</div></div></div>
+                <div class="event"><div class="time">06:18</div><div><div class="event-title">Hayabusa 4 新青森 → 盛冈</div><div class="event-meta">07:10 到盛冈，换乘缓冲 48 分钟。</div><div class="event-tags"><span class="mini">待预订</span><span class="mini">全车指定席</span></div></div></div>
+                <div class="event"><div class="time">07:58</div><div><div class="event-title">Komachi 95 盛冈 → 角馆</div><div class="event-meta">08:45 到角馆；下车先处理五件行李。</div><div class="event-tags"><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">09:20</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Kakunodate+Samurai+District" target="_blank" rel="noopener">角馆武家屋敷</a></div><div class="event-meta">古街散步、参观开放宅邸、午餐与拍照；16:40 前回站取行李。</div></div></div>
+                <div class="event"><div class="time">17:28</div><div><div class="event-title">Komachi 27 角馆 → 秋田</div><div class="event-meta">18:12 到秋田；建议预订五人指定席。</div><div class="event-tags"><span class="mini">建议班次</span><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">19:00</div><div><div class="event-title">入住<a href="https://www.google.com/maps/search/?api=1&query=10-62+Tegatayamazakicho+Akita+Akita+010-0854" target="_blank" rel="noopener">秋田 Akita 民宿</a>并在秋田站周边逛吃</div><div class="event-meta">地址：10-62 Tegatayamazakichō, Akita, Akita 010-0854, 日本。晚餐待定；把原计划 10/03 的秋田市逛吃前移到今晚，避免次日折返。</div></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day6">
+            <summary><div class="day-num"><b>D6</b><span>10/03 周六</span></div><div class="day-title"><strong>田泽湖 → 大曲花火</strong><span>辰子像、环湖、秋之章</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">雨天延期日为 10/04 或 10/10。若 10/03 延期，因次日返程，五人需放弃延期场并保留原回程，不改国际航班。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">08:10</div><div><div class="event-title">秋田站早餐与采购</div><div class="event-meta">带轻便雨具、保暖层、充电宝和少量现金；大件行李留在秋田民宿。</div></div></div>
+                <div class="event"><div class="time">09:12</div><div><div class="event-title">Komachi 14 秋田 → 田泽湖</div><div class="event-meta">10:13 到达；每日运行。</div><div class="event-tags"><span class="mini">建议班次</span><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">10:45</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Lake+Tazawa+Tatsuko+Statue" target="_blank" rel="noopener">田泽湖一周巴士</a></div><div class="event-meta">官方 2026 时刻：顺时针环湖，在潟尻停留 20 分钟看金色辰子像，在御座石神社停留 10 分钟。回站后快速午餐。</div><div class="event-tags"><span class="mini">出发前复核完整回站时刻</span></div></div></div>
+                <div class="event"><div class="time">13:11</div><div><div class="event-title">Komachi 15 田泽湖 → 大曲</div><div class="event-meta">13:35 到达；每日运行。若环湖巴士延误，改乘后续班次，不冒险冲站。</div><div class="event-tags"><span class="mini">建议班次</span><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">14:00</div><div><div class="event-title">大曲站 → 花火会场</div><div class="event-meta">沿官方步行路线约 2 km / 30 分钟；15:00 计划开门，先确认席位与五人散场集合点。</div></div></div>
+                <div class="event"><div class="time">18:00</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Omagari+Fireworks+Park" target="_blank" rel="noopener">大曲花火大会 · 秋之章</a></div><div class="event-meta">18:00-19:30；五人观览席票已购买。</div><div class="event-tags"><span class="mini">已购 5 人席</span></div></div></div>
+                <div class="event"><div class="time">19:30</div><div><div class="event-title">立即离场，步行回大曲站</div><div class="event-meta">目标 20:45 前到站并按现场导流排队。失散集合点：大曲站入口外指定明显标志，当天拍照发群。</div></div></div>
+                <div class="event"><div class="time">21:24</div><div><div class="event-title">花火专门开行普通列车 → 秋田</div><div class="event-meta">9459M，仅 10/03 开行；22:17 到秋田。普通列车可能拥挤，提前进站排队。</div><div class="event-tags"><span class="mini">主返程</span><span class="mini">出发当日复核</span></div></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="day" id="day7">
+            <summary><div class="day-num"><b>D7</b><span>10/04 周日</span></div><div class="day-title"><strong>秋田 → 东京 → 香港</strong><span>早班小町、东京短停、成田返程</span></div></summary>
+            <div class="day-body">
+              <div class="day-notice">当晚 21:35 国际航班。东京游览范围固定在东京站、丸之内、皇居外苑一带，不跨城追景点。</div>
+              <div class="timeline">
+                <div class="event"><div class="time">05:25</div><div><div class="event-title">退房，前往秋田站</div><div class="event-meta">建议两辆出租车，05:50 前到站；前一晚已经过花火散场，不再压缩睡眠缓冲。</div></div></div>
+                <div class="event"><div class="time">06:09</div><div><div class="event-title">Komachi 6 秋田 → 东京</div><div class="event-meta">09:47 到东京；全车指定席。五人连座与行李位置一起预订。</div><div class="event-tags"><span class="mini">推荐班次</span><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">10:00</div><div><div class="event-title">东京站寄存行李</div><div class="event-meta">优先站内人工寄存或预订寄存服务，普通大号柜仅作备选；记下入口、楼层与关门时间。</div></div></div>
+                <div class="event"><div class="time">10:40</div><div><div class="event-title"><a href="https://www.google.com/maps/search/?api=1&query=Tokyo+Station+Marunouchi+Imperial+Palace+Outer+Garden" target="_blank" rel="noopener">丸之内与皇居外苑</a></div><div class="event-meta">轻松步行、午餐与东京站购物；雨天改为 KITTE / 丸之内地下街。</div></div></div>
+                <div class="event"><div class="time">16:30</div><div><div class="event-title">取行李，前往 N'EX 月台</div><div class="event-meta">东京站内部步行距离长，预留至少 45 分钟找月台与上车。</div></div></div>
+                <div class="event"><div class="time">17:33</div><div><div class="event-title">Narita Express 45 → 成田机场</div><div class="event-meta">18:25 到机场第 2 航站楼站；与 21:35 起飞间隔约 3 小时。</div><div class="event-tags"><span class="mini">推荐班次</span><span class="mini">待预订</span></div></div></div>
+                <div class="event"><div class="time">21:35</div><div><div class="event-title">UO653 成田 → 香港</div><div class="event-meta">10/05 01:30 抵达香港；出发航站楼以票面与航空公司当日公告为准。</div><div class="event-tags"><span class="mini">已确认</span></div></div></div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="band white" id="team">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Five Together</p><h2>五人分配与集合规则</h2></div><p class="subtle">普通出租车一律按两车计划</p></div>
+        <div class="two-col">
+          <div class="info-block">
+            <h3>住宿分房</h3>
+            <table class="room-table">
+              <thead><tr><th>房间</th><th>成员</th><th>适用住宿</th></tr></thead>
+              <tbody>
+                <tr><td>双人组 A</td><td>转转、媛媛</td><td>全部民宿 + Apple Land</td></tr>
+                <tr><td>双人组 B</td><td>邱允、妹妹</td><td>全部民宿 + Apple Land</td></tr>
+                <tr><td>单人组</td><td>恩浓</td><td>全部民宿 + Apple Land</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="info-block">
+            <h3>两车默认分组</h3>
+            <p>A 车：转转、媛媛、恩浓；B 车：邱允、妹妹。每次上车前拍下目的地日文地址，抵达后原地等齐，不分头先走。</p>
+          </div>
+          <div class="info-block">
+            <h3>列车座位</h3>
+            <p>Hayabusa、Komachi、N'EX 统一预订 5 个指定席，优先 2+2 相邻排加同排/邻排 1 席。大件行李不要堵车厢通道。</p>
+          </div>
+          <div class="info-block">
+            <h3>掉队处理</h3>
+            <p>站内失散先去“下一趟车的检票口外”集合；花火散场则以当天拍照确认的大曲站外标志为唯一集合点。群里只发当前位置，不边走边找。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="budget">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Budget</p><h2>预算与分摊</h2></div><p class="subtle">未提供金额，不做估价</p></div>
+        <div class="budget-strip">
+          <div class="budget-item"><span>已付票券</span><b>待录入</b><small>航班 / USJ / 花火</small></div>
+          <div class="budget-item"><span>住宿</span><b>待录入</b><small>6 晚 · 5 人</small></div>
+          <div class="budget-item"><span>待付交通</span><b>待录入</b><small>JR / 巴士 / 出租车</small></div>
+          <div class="budget-item"><span>餐饮与现金</span><b>待录入</b><small>JPY · 团体 / 个人分开</small></div>
+        </div>
+        <p class="fine">建议每笔集体支出记录：日期、JPY 金额、付款人、参与分摊成员、是否结清。未确认汇率前不显示人民币换算。</p>
+      </div>
+    </section>
+
+    <section class="band white" id="tasks">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Before You Go</p><h2>出发前待办</h2></div><p class="subtle">勾选状态只保存在当前设备</p></div>
+        <div class="task-list" id="taskList">
+          <div class="task"><input id="t1" type="checkbox"><label for="t1">立即预订 Hayabusa 4、Komachi 95 / 27 / 14 / 15 / 6 与 N'EX 45 的 5 人座位</label><small>负责人待定</small></div>
+          <div class="task"><input id="t2" type="checkbox"><label for="t2">确认角馆站 5 件大行李寄存方案；不足则提前寄往秋田</label><small>09/24 前</small></div>
+          <div class="task"><input id="t3" type="checkbox"><label for="t3">从订单补齐大阪民宿精确地址、入住方式和房东联系方式并离线保存</label><small>09/25 前</small></div>
+          <div class="task"><input id="t4" type="checkbox"><label for="t4">D1 三家主餐中选一家，确认周一营业与五人座位</label><small>09/26 前</small></div>
+          <div class="task"><input id="t5" type="checkbox"><label for="t5">电话预约 Hotel Apple Land 10/01 09:30 送站巴士</label><small>最晚 09/29</small></div>
+          <div class="task"><input id="t6" type="checkbox"><label for="t6">截图保存航班、USJ、Express Pass、任天堂世界、花火票与住宿入住说明</label><small>出发前</small></div>
+          <div class="task"><input id="t7" type="checkbox"><label for="t7">确认个人常用药、旅行保险资料、充电设备和雨具已装包</label><small>出发前</small></div>
+          <div class="task"><input id="t8" type="checkbox"><label for="t8">10/03 早晨查看花火官网天气公告与 JR 当日导流信息</label><small>10/03</small></div>
+        </div>
+
+        <div class="packing-head" id="packing">
+          <p class="section-kicker">Packing List</p>
+          <h2>物资清单</h2>
+          <p class="subtle">按人检查；共用品明确由谁携带，避免五人重复带或无人带。</p>
+        </div>
+        <div class="packing-grid" id="packingList">
+          <section class="packing-group">
+            <h3>入境与支付</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p27" data-save type="checkbox"><label for="p27">护照 / 身份证，只核对原件与有效期</label></div>
+              <div class="packing-item"><input id="p1" data-save type="checkbox"><label for="p1">电子入境卡 / Visit Japan Web QR，截图离线保存</label></div>
+              <div class="packing-item"><input id="p2" data-save type="checkbox"><label for="p2">Visa 信用卡</label></div>
+              <div class="packing-item"><input id="p3" data-save type="checkbox"><label for="p3">日元现金</label></div>
+              <div class="packing-item"><input id="p4" data-save type="checkbox"><label for="p4">境外旅行保险资料，保单号离线保存</label></div>
+            </div>
+          </section>
+          <section class="packing-group">
+            <h3>网络与应用</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p5" data-save type="checkbox"><label for="p5">电话卡 / eSIM</label></div>
+              <div class="packing-item"><input id="p6" data-save type="checkbox"><label for="p6">西瓜卡 Suica：实体卡或手机钱包</label></div>
+              <div class="packing-item"><input id="p7" data-save type="checkbox"><label for="p7">Google Maps，提前下载离线地图</label></div>
+              <div class="packing-item"><input id="p8" data-save type="checkbox"><label for="p8">翻译软件与日语离线语言包</label></div>
+            </div>
+          </section>
+          <section class="packing-group">
+            <h3>电子设备</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p9" data-save type="checkbox"><label for="p9">日规转换头</label></div>
+              <div class="packing-item"><input id="p10" data-save type="checkbox"><label for="p10">插线板</label></div>
+              <div class="packing-item"><input id="p11" data-save type="checkbox"><label for="p11">充电宝，随身携带不可托运</label></div>
+              <div class="packing-item"><input id="p12" data-save type="checkbox"><label for="p12">手机、相机与充电宝数据线</label></div>
+            </div>
+          </section>
+          <section class="packing-group">
+            <h3>洗护与卫生</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p13" data-save type="checkbox"><label for="p13">护肤品 / 化妆品</label></div>
+              <div class="packing-item"><input id="p14" data-save type="checkbox"><label for="p14">浴巾、毛巾</label></div>
+              <div class="packing-item"><input id="p15" data-save type="checkbox"><label for="p15">牙膏、牙刷、拖鞋</label></div>
+              <div class="packing-item"><input id="p16" data-save type="checkbox"><label for="p16">一次性内裤、袜子</label></div>
+              <div class="packing-item"><input id="p17" data-save type="checkbox"><label for="p17">湿巾、纸巾</label></div>
+            </div>
+          </section>
+          <section class="packing-group">
+            <h3>衣物</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p26" data-save type="checkbox"><label for="p26">行李箱，确认尺寸、重量与锁具</label></div>
+              <div class="packing-item"><input id="p18" data-save type="checkbox"><label for="p18">浴服 / 睡衣</label></div>
+              <div class="packing-item"><input id="p19" data-save type="checkbox"><label for="p19">约 5 套日常服装</label></div>
+              <div class="packing-item"><input id="p20" data-save type="checkbox"><label for="p20">USJ 鲜艳上镜服装</label></div>
+              <div class="packing-item"><input id="p21" data-save type="checkbox"><label for="p21">保暖防风外套，东北与花火夜间使用</label></div>
+            </div>
+          </section>
+          <section class="packing-group">
+            <h3>防护与药品</h3>
+            <div class="packing-list">
+              <div class="packing-item"><input id="p22" data-save type="checkbox"><label for="p22">防晒霜、墨镜</label></div>
+              <div class="packing-item"><input id="p23" data-save type="checkbox"><label for="p23">雨伞；花火会场另备轻便雨衣</label></div>
+              <div class="packing-item"><input id="p24" data-save type="checkbox"><label for="p24">防蚊虫叮咬喷雾、便携消毒喷雾</label></div>
+              <div class="packing-item"><input id="p25" data-save type="checkbox"><label for="p25">个人常用药品包，详细药名见私密行程资料</label></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="practical">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Field Notes</p><h2>实用与应急信息</h2></div></div>
+        <div class="two-col">
+          <div class="info-block"><h3>现金与交通卡</h3><p>青森机场巴士支持交通 IC 或信用卡感应支付，但乡镇巴士、小店和活动现场仍备 JPY 现金。每人保留独立返程交通费。</p></div>
+          <div class="info-block"><h3>行李策略</h3><p>D5 青森到角馆是最难处理的一段。每人尽量 1 件主行李 + 1 件随身包；D6 去花火只带小包，大件留秋田民宿。</p></div>
+          <div class="info-block"><h3>秋季穿着</h3><p>东北早晚、田泽湖畔与河岸花火体感偏冷，分层穿衣并带防风外套。花火会场带坐垫、雨衣，不用伞遮挡他人。</p></div>
+          <div class="info-block"><h3>常用日语</h3><p>五名です（五位） · 荷物を預けたいです（想寄存行李） · この電車は秋田へ行きますか（这班车去秋田吗） · 現金だけですか（只收现金吗）。</p></div>
+          <div class="info-block"><h3>紧急号码</h3><p>警察 110 · 火警 / 急救 119。紧急时先说明当前位置，再联系住宿方与旅行保险。私人紧急联系人不放在公开页面。</p></div>
+          <div class="info-block"><h3>五人集合原则</h3><p>每次转场由最后一人确认“人齐、证件、票、行李”。发车前 15 分钟不再分头买东西；错过车次时全员执行同一备选。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band white" id="sources">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Verified 2026.09.21</p><h2>官方核验来源</h2></div><p class="subtle">动态信息出发前再复核</p></div>
+        <ul class="source-list">
+          <li><a href="https://mobile-service.usj.co.jp/api/Venues/10251/Hours?endDate=10/01/2026&city=USJ" target="_blank" rel="noopener">USJ 官方营业时间 API</a></li>
+          <li><a href="https://www.apple-land.co.jp/access.php" target="_blank" rel="noopener">Hotel Apple Land 官方交通与预约接驳</a></li>
+          <li><a href="https://www.konanbus.com/wordpress/wp-content/uploads/2026/07/20260901_aomoriair.pdf" target="_blank" rel="noopener">弘南巴士 2026 年 9 月青森机场线时刻表</a></li>
+          <li><a href="https://www.nebuta.jp/warasse/event/2026/08/94.html" target="_blank" rel="noopener">WA RASSE 官方营业公告</a> · <a href="https://afactory-abc.com/service/" target="_blank" rel="noopener">A-FACTORY 官方营业时间</a></li>
+          <li><a href="https://www.hirosakipark.jp/price.html" target="_blank" rel="noopener">弘前公园收费区域开放时间</a></li>
+          <li><a href="https://ugokotsu.co.jp/wp-content/jikoku/latest/tazawa2026.pdf" target="_blank" rel="noopener">羽后交通 2026 田泽湖一周线时刻表</a></li>
+          <li><a href="https://www.omagari-hanabi.com/overview/autumn/" target="_blank" rel="noopener">大曲花火秋之章官方概要</a> · <a href="https://www.omagari-hanabi.com/access/" target="_blank" rel="noopener">官方交通说明</a></li>
+          <li><a href="https://timetables.jreast.co.jp/2610/timetable-v/258d2p.html" target="_blank" rel="noopener">JR 东日本 2026 年 10 月田泽湖线 / 奥羽本线时刻表</a> · <a href="https://timetables.jreast.co.jp/2610/train/030/033011.html" target="_blank" rel="noopener">Komachi 6 官方时刻</a> · <a href="https://timetables.jreast.co.jp/2610/train/075/076581.html" target="_blank" rel="noopener">N'EX 45 官方时刻</a></li>
+        </ul>
+        <p class="fine">页面为公开分享版：未显示健康状况、具体药名、订单号、证件号、私人电话或门锁信息。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="shell">日本五人行 · 2026 秋 · 离线单页手册 · 日本时间 UTC+9</div></footer>
+
+  <dialog id="mapDialog" aria-labelledby="dialogTitle">
+    <div class="dialog-head">
+      <strong id="dialogTitle">全程路线大图 · 非比例示意</strong>
+      <button class="zoom-button" id="zoomOut" type="button" title="缩小" aria-label="缩小">−</button>
+      <button class="zoom-button" id="zoomReset" type="button" title="复位" aria-label="复位">↺</button>
+      <button class="zoom-button" id="zoomIn" type="button" title="放大" aria-label="放大">+</button>
+      <button class="zoom-button" id="closeMap" type="button" title="关闭" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-map" id="dialogMap"></div>
+  </dialog>
+
+  <script>
+    const events = [
+      { time: "2026-09-28T05:45:00+08:00", title: "香港国际机场集合", place: "HKG · 建议时间" },
+      { time: "2026-09-28T08:45:00+08:00", title: "UO686 香港起飞", place: "HKG → KIX" },
+      { time: "2026-09-28T18:00:00+09:00", title: "道顿堀 / 心斋桥", place: "大阪" },
+      { time: "2026-09-29T07:15:00+09:00", title: "USJ 门口集合", place: "08:00 开园" },
+      { time: "2026-09-30T12:00:00+09:00", title: "抵达伊丹机场南航站楼", place: "NH1853" },
+      { time: "2026-09-30T14:10:00+09:00", title: "NH1853 伊丹起飞", place: "ITM → AOJ" },
+      { time: "2026-10-01T09:30:00+09:00", title: "Hotel Apple Land 送站巴士", place: "需提前预约" },
+      { time: "2026-10-02T05:41:00+09:00", title: "青森站出发", place: "前往角馆" },
+      { time: "2026-10-02T17:28:00+09:00", title: "Komachi 27", place: "角馆 → 秋田 · 待预订" },
+      { time: "2026-10-03T09:12:00+09:00", title: "Komachi 14", place: "秋田 → 田泽湖 · 待预订" },
+      { time: "2026-10-03T18:00:00+09:00", title: "大曲花火 · 秋之章", place: "18:00-19:30" },
+      { time: "2026-10-03T21:24:00+09:00", title: "花火专门开行普通列车", place: "大曲 → 秋田" },
+      { time: "2026-10-04T06:09:00+09:00", title: "Komachi 6", place: "秋田 → 东京 · 待预订" },
+      { time: "2026-10-04T17:33:00+09:00", title: "Narita Express 45", place: "东京 → 成田 T2 · 待预订" },
+      { time: "2026-10-04T21:35:00+09:00", title: "UO653 成田起飞", place: "NRT → HKG" },
+      { time: "2026-10-05T01:30:00+08:00", title: "抵达香港", place: "旅程结束" }
+    ].map(item => ({ ...item, date: new Date(item.time) }));
+
+    const pad = value => String(value).padStart(2, "0");
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
+
+    function updateCountdown() {
+      const now = new Date();
+      const next = events.find(item => item.date > now);
+      const clock = new Intl.DateTimeFormat("zh-CN", {
+        timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", weekday: "short",
+        hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+      }).format(now);
+      $("#japanClock").textContent = `日本时间 ${clock}`;
+      if (!next) {
+        $("#nextTitle").textContent = "旅程已结束";
+        $("#nextMeta").textContent = "欢迎回家";
+        ["#cdDays", "#cdHours", "#cdMinutes", "#cdSeconds"].forEach(id => $(id).textContent = "00");
+        return;
+      }
+      const diff = next.date - now;
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor(diff / 3600000) % 24;
+      const minutes = Math.floor(diff / 60000) % 60;
+      const seconds = Math.floor(diff / 1000) % 60;
+      $("#nextTitle").textContent = next.title;
+      $("#nextMeta").textContent = `${next.place} · ${new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(next.date)}（日本时间显示）`;
+      $("#cdDays").textContent = pad(days);
+      $("#cdHours").textContent = pad(hours);
+      $("#cdMinutes").textContent = pad(minutes);
+      $("#cdSeconds").textContent = pad(seconds);
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    const captions = {
+      all: "全程：香港 → 大阪 → 青森/弘前 → 角馆 → 秋田/田泽湖/大曲 → 东京/成田 → 香港",
+      d1: "D1：香港飞大阪关西，前往此花区，再去道顿堀 / 心斋桥。",
+      d2: "D2：此花区民宿往返大阪环球影城。",
+      d3: "D3：大阪伊丹飞青森，机场巴士到弘前，再前往平川温泉酒店。",
+      d4: "D4：平川到弘前公园，再转青森站湾区。",
+      d5: "D5：青森经新青森、盛冈到角馆，傍晚前往秋田。",
+      d6: "D6：秋田到田泽湖，转大曲花火，夜间返回秋田。",
+      d7: "D7：秋田到东京，转成田机场，飞回香港。"
+    };
+    $$(".route-tab").forEach(button => button.addEventListener("click", () => {
+      const filter = button.dataset.filter;
+      $$(".route-tab").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+      $$(".route-segment").forEach(item => item.classList.toggle("is-muted", filter !== "all" && item.dataset.day !== filter));
+      $$(".route-node").forEach(item => item.classList.toggle("is-muted", filter !== "all" && !item.dataset.days.split(" ").includes(filter)));
+      $("#routeCaption").textContent = captions[filter];
+    }));
+
+    const allDays = $$("details.day");
+    function setAllDays(open) {
+      allDays.forEach(day => day.open = open);
+      $("#toggleDays").textContent = open ? "全部收起" : "全部展开";
+      $("#collapseTop").textContent = open ? "收起每日行程" : "展开每日行程";
+    }
+    $("#toggleDays").addEventListener("click", () => setAllDays(!allDays.every(day => day.open)));
+    $("#collapseTop").addEventListener("click", () => setAllDays(!allDays.every(day => day.open)));
+
+    $$("#taskList input, #packingList input[data-save]").forEach(input => {
+      try { input.checked = localStorage.getItem(`jp-trip-${input.id}`) === "1"; } catch (_) {}
+      input.closest(".task, .packing-item").classList.toggle("done", input.checked);
+      input.addEventListener("change", () => {
+        input.closest(".task, .packing-item").classList.toggle("done", input.checked);
+        try { localStorage.setItem(`jp-trip-${input.id}`, input.checked ? "1" : "0"); } catch (_) {}
+      });
+    });
+
+    const dialog = $("#mapDialog");
+    const routeSvg = $(".route-board svg");
+    const dialogMap = $("#dialogMap");
+    let zoom = 1;
+    function openMap() {
+      dialogMap.innerHTML = "";
+      const clone = routeSvg.cloneNode(true);
+      clone.removeAttribute("aria-labelledby");
+      clone.setAttribute("aria-label", "日本五人行全程路线大图");
+      dialogMap.appendChild(clone);
+      zoom = 1;
+      clone.style.transform = "scale(1)";
+      dialog.showModal();
+      $("#closeMap").focus();
+    }
+    $("#openMap").addEventListener("click", openMap);
+    $("#openMapTop").addEventListener("click", openMap);
+    $("#closeMap").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+    function applyZoom(next) {
+      zoom = Math.min(2.2, Math.max(.7, next));
+      const svg = dialogMap.querySelector("svg");
+      if (svg) svg.style.transform = `scale(${zoom})`;
+    }
+    $("#zoomIn").addEventListener("click", () => applyZoom(zoom + .2));
+    $("#zoomOut").addEventListener("click", () => applyZoom(zoom - .2));
+    $("#zoomReset").addEventListener("click", () => { applyZoom(1); dialogMap.scrollTo(0, 0); });
+  </script>
+</body>
+</html>
