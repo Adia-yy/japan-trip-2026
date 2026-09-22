@@ -1204,6 +1204,7 @@
     let expenseCloudMember = "";
     let expenseCloudChannel = null;
     let expenseSyncTimer = null;
+    let expenseEmailCooldownTimer = null;
     let expenseSyncing = false;
     let expenseSyncRequested = false;
     let expensePasswordRecovery = new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
@@ -1299,6 +1300,41 @@
       node.textContent = message;
       node.dataset.kind = kind;
       node.hidden = !message;
+    }
+
+    function expenseAuthErrorMessage(error) {
+      const message = String(error?.message || "");
+      const code = String(error?.code || "");
+      if (/only request this after/i.test(message)) {
+        return "邮件请求过于频繁，请至少等待 60 秒后再试，不要连续点击。";
+      }
+      if (code === "over_email_send_rate_limit" || /email rate limit exceeded/i.test(message)) {
+        return "Supabase 邮件额度已达上限。已有密码请改用“密码登录”；首次登录通常需要等待约 1 小时后再尝试一次。";
+      }
+      if (error?.status === 429 || /rate limit/i.test(message)) return "请求次数已达上限，请稍后再试。";
+      return message || "操作失败，请稍后再试。";
+    }
+
+    function startExpenseEmailCooldown() {
+      clearInterval(expenseEmailCooldownTimer);
+      const endsAt = Date.now() + 60000;
+      const buttons = [
+        [$("#expenseForgotPassword"), "设置/忘记密码"],
+        [$("#expenseSendLink"), "发送登录链接"]
+      ];
+      const update = () => {
+        const seconds = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        buttons.forEach(([button, label]) => {
+          button.disabled = seconds > 0;
+          button.textContent = seconds > 0 ? `${seconds} 秒后可发送` : label;
+        });
+        if (seconds === 0) {
+          clearInterval(expenseEmailCooldownTimer);
+          expenseEmailCooldownTimer = null;
+        }
+      };
+      update();
+      expenseEmailCooldownTimer = setInterval(update, 1000);
     }
 
     function setExpenseAuthView(session, memberName = "") {
@@ -1538,11 +1574,11 @@
       button.disabled = true;
       setExpenseSyncMessage();
       setExpenseSyncStatus("syncing", "正在发送", "发送密码设置邮件");
+      startExpenseEmailCooldown();
       const { error } = await expenseCloud.auth.resetPasswordForEmail(email, { redirectTo: expenseAuthRedirectUrl() });
-      button.disabled = false;
       if (error) {
         setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
-        setExpenseSyncMessage(error.message);
+        setExpenseSyncMessage(expenseAuthErrorMessage(error));
         return;
       }
       setExpenseSyncStatus("local", "密码邮件已发送", "打开邮件链接后回到这里设置新密码");
@@ -1612,11 +1648,11 @@
       button.disabled = true;
       setExpenseSyncMessage();
       setExpenseSyncStatus("syncing", "正在发送", "请稍候");
+      startExpenseEmailCooldown();
       const { error } = await expenseCloud.auth.signInWithOtp({ email, options: { emailRedirectTo: expenseAuthRedirectUrl(), shouldCreateUser: true } });
-      button.disabled = false;
       if (error) {
         setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
-        setExpenseSyncMessage(error.message);
+        setExpenseSyncMessage(expenseAuthErrorMessage(error));
         return;
       }
       setExpenseSyncStatus("local", "登录链接已发送", "请到邮箱打开链接，返回网页后将自动同步");
