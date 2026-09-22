@@ -1,28 +1,27 @@
 # Supabase setup for Japan Trip 2026
 
-This repository is a static HTML site, so the Supabase **project** must be created in the Supabase Dashboard. The database schema and browser adapter are included here.
+This repository is a static HTML site. The shared expense ledger and checklist controls can now be bound to Supabase.
 
-## 1. Create the project
+## Configure the page
 
-1. Create a project at <https://supabase.com/dashboard>.
-2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
-3. In **Authentication → Providers**, enable Email. Magic-link sign-in is sufficient.
-4. Copy the project URL and the **anon public** key. Do not use or commit the service-role key.
-
-## 2. Configure the page
-
-Before loading `assets/supabase.js`, add this configuration to `index.html`:
+Before the binding module loads, add this configuration to `index.html`:
 
 ```html
 <script>
   window.SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
   window.SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY';
 </script>
-<script type="module" src="assets/supabase.js"></script>
+<script type="module" src="assets/supabase-bindings.js"></script>
 ```
 
-The adapter exports functions for authentication, the shared expense ledger, checklist persistence, and realtime expense updates. The existing page can continue using local storage until its form handlers are switched to these functions.
+Run [`supabase/schema.sql`](supabase/schema.sql) in Supabase Dashboard → SQL Editor first. Enable Email or Magic Link under Authentication → Providers.
 
-## Security
+The binding module now:
 
-Row-level security is enabled and every table policy requires an authenticated user. The anon key is safe for browser use, but a service-role key is never safe to expose in `index.html`.
+- loads shared expenses from Supabase on startup;
+- saves, edits, and deletes expense records in Supabase;
+- syncs task and packing checkboxes to Supabase;
+- subscribes to realtime expense changes;
+- prompts for a magic-link login before writes.
+
+The browser may contain only the Supabase URL and anon public key. Never commit a service-role key.
