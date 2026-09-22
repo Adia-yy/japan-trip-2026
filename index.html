@@ -27,6 +27,7 @@
 
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    section[id] { scroll-margin-top: 64px; }
     body {
       margin: 0;
       color: var(--ink);
@@ -35,9 +36,9 @@
       letter-spacing: 0;
     }
     a { color: var(--blue); text-underline-offset: 3px; }
-    button, summary, input { font: inherit; }
+    button, summary, input, select, textarea { font: inherit; }
     button { letter-spacing: 0; }
-    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
+    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
       outline: 3px solid rgba(47, 100, 140, .32);
       outline-offset: 2px;
     }
@@ -158,6 +159,42 @@
     .booking p { margin-top: 8px; color: var(--muted); }
     .booking strong { color: var(--ink); }
 
+    .food-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .food-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .food-gallery {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(180px, 58%);
+      gap: 7px;
+      padding: 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
+      background: #252522;
+    }
+    .food-gallery[data-count="1"] { grid-auto-columns: 100%; }
+    .food-photo {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 4px;
+      background: #111;
+      cursor: zoom-in;
+      scroll-snap-align: start;
+    }
+    .food-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .food-card-body { padding: 17px; }
+    .food-card-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+    .food-card h3 { overflow-wrap: anywhere; }
+    .food-place { flex: 0 0 auto; color: var(--red); font-size: 12px; font-weight: 800; }
+    .food-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .food-tag { padding: 3px 7px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 11px; }
+    .food-card p { margin-top: 10px; color: var(--muted); }
+    .food-map { display: inline-block; margin-top: 12px; font-weight: 700; }
+
     .toolbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
     .plain-button { min-height: 38px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); cursor: pointer; }
     .days { display: grid; gap: 10px; }
@@ -217,6 +254,70 @@
     .budget-item:last-child { border-right: 0; }
     .budget-item b { display: block; margin-top: 4px; font-size: 20px; }
 
+    .expense-form { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .form-grid { display: grid; grid-template-columns: 1.35fr .8fr .8fr .85fr; gap: 14px; }
+    .form-field { display: grid; align-content: start; gap: 6px; min-width: 0; }
+    .form-field > span, .split-field legend { color: var(--muted); font-size: 12px; font-weight: 750; }
+    .form-field input, .form-field select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid #bcc3bf;
+      border-radius: 5px;
+      color: var(--ink);
+      background: #fff;
+    }
+    .expense-form-bottom { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; margin-top: 16px; }
+    .split-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .split-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
+    .split-option { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 5px 9px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+    .split-option input { width: 17px; height: 17px; accent-color: var(--green); }
+    .form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .primary-button, .secondary-button, .danger-button {
+      min-height: 40px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+    .primary-button { border: 1px solid var(--ink); color: #fff; background: var(--ink); }
+    .secondary-button { border: 1px solid var(--line); color: var(--ink); background: #fff; }
+    .danger-button { border: 1px solid #d9a7a2; color: #8c2a24; background: #fff; }
+    [hidden] { display: none !important; }
+    .expense-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .expense-stat { min-width: 0; padding: 15px; border-right: 1px solid var(--line); }
+    .expense-stat:last-child { border-right: 0; }
+    .expense-stat span { color: var(--muted); font-size: 12px; }
+    .expense-stat b { display: block; margin-top: 3px; font-size: 19px; overflow-wrap: anywhere; }
+    .member-split { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .member-share { padding: 10px; border-left: 3px solid var(--blue); background: var(--blue-soft); }
+    .member-share b, .member-share small { display: block; }
+    .member-share small { margin-top: 2px; color: var(--muted); }
+    .ledger-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 10px; }
+    .segmented { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .segment-button { min-height: 34px; padding: 5px 10px; border: 0; border-radius: 4px; color: var(--muted); background: transparent; cursor: pointer; }
+    .segment-button[aria-pressed="true"] { color: #fff; background: var(--ink); }
+    .expense-list { display: grid; gap: 8px; }
+    .expense-empty { padding: 26px; border: 1px dashed #b8bfbb; color: var(--muted); text-align: center; background: rgba(255,255,255,.58); }
+    .expense-record {
+      display: grid;
+      grid-template-columns: 92px minmax(130px, 1.3fr) 110px 88px minmax(140px, 1fr) 72px auto;
+      gap: 10px;
+      align-items: center;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--gold);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .expense-record.settled { border-left-color: var(--green); }
+    .expense-record > div { min-width: 0; overflow-wrap: anywhere; }
+    .record-label { display: block; color: var(--muted); font-size: 10px; font-weight: 750; }
+    .record-amount { font-weight: 820; font-variant-numeric: tabular-nums; }
+    .record-actions { display: flex; gap: 6px; }
+    .record-icon { width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; font-weight: 800; }
+    .record-icon.delete { color: #8c2a24; }
+
     .source-list { margin: 0; padding-left: 20px; }
     .source-list li + li { margin-top: 7px; }
     .fine { margin-top: 16px; color: var(--muted); font-size: 12px; }
@@ -229,6 +330,14 @@
     .zoom-button { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; font-size: 20px; }
     .dialog-map { height: calc(100% - 58px); overflow: auto; background: #eef2f0; }
     .dialog-map svg { width: 1100px; height: 640px; transform-origin: top left; transition: transform .16s ease; }
+    #foodDialog { width: min(94vw, 760px); height: min(92vh, 900px); background: #151513; }
+    #foodDialog .dialog-head { color: #fff; background: #252522; border-bottom-color: rgba(255,255,255,.15); }
+    #foodDialog .zoom-button { color: #fff; border-color: rgba(255,255,255,.28); background: transparent; }
+    .food-dialog-body { position: relative; height: calc(100% - 58px); display: grid; place-items: center; padding: 18px 58px; }
+    #foodDialogImage { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+    .photo-nav { position: absolute; top: 50%; width: 42px; height: 46px; border: 1px solid rgba(255,255,255,.35); border-radius: 5px; color: #fff; background: rgba(0,0,0,.45); cursor: pointer; transform: translateY(-50%); font-size: 24px; }
+    #foodPrev { left: 8px; }
+    #foodNext { right: 8px; }
 
     @media (max-width: 760px) {
       .shell { width: min(100% - 22px, 680px); }
@@ -245,6 +354,7 @@
       .band { padding: 42px 0; }
       .section-head { align-items: start; flex-direction: column; }
       .booking-grid { grid-template-columns: 1fr; }
+      .food-grid { grid-template-columns: 1fr; }
       .packing-grid { grid-template-columns: 1fr; }
       .two-col { grid-template-columns: 1fr; gap: 0; }
       .info-block:nth-child(2) { border-top: 1px solid var(--line); }
@@ -252,6 +362,18 @@
       .budget-item { border-bottom: 1px solid var(--line); }
       .budget-item:nth-child(2) { border-right: 0; }
       .budget-item:nth-child(3), .budget-item:nth-child(4) { border-bottom: 0; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .expense-form-bottom { grid-template-columns: 1fr; }
+      .form-actions { justify-content: flex-start; }
+      .expense-summary { grid-template-columns: 1fr 1fr; }
+      .expense-stat { border-bottom: 1px solid var(--line); }
+      .expense-stat:nth-child(2) { border-right: 0; }
+      .expense-stat:nth-child(3), .expense-stat:nth-child(4) { border-bottom: 0; }
+      .member-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ledger-tools { align-items: stretch; flex-direction: column; }
+      .expense-record { grid-template-columns: 1fr 1fr; gap: 9px 14px; }
+      .expense-record .record-description, .expense-record .record-participants { grid-column: 1 / -1; }
+      .record-actions { justify-content: flex-end; }
       .day summary { grid-template-columns: 58px 1fr auto; gap: 9px; padding: 16px 12px; }
       .day-title strong { font-size: 16px; }
       .day-body { padding: 0 12px 16px; }
@@ -271,6 +393,13 @@
       .budget-strip { grid-template-columns: 1fr; }
       .budget-item { border-right: 0; border-bottom: 1px solid var(--line) !important; }
       .budget-item:last-child { border-bottom: 0 !important; }
+      .form-grid, .expense-summary { grid-template-columns: 1fr; }
+      .expense-stat { border-right: 0; border-bottom: 1px solid var(--line) !important; }
+      .expense-stat:last-child { border-bottom: 0 !important; }
+      .member-split { grid-template-columns: 1fr; }
+      .segmented { width: 100%; }
+      .segment-button { flex: 1; padding-inline: 5px; }
+      .food-dialog-body { padding-inline: 50px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -279,7 +408,7 @@
     }
 
     @media print {
-      .topbar, .toolbar, .route-tabs, .map-open, dialog { display: none !important; }
+      .topbar, .toolbar, .route-tabs, .map-open, dialog, .expense-form, .ledger-tools, .record-actions { display: none !important; }
       body { background: #fff; font-size: 12px; }
       .hero { color: #000; background: #fff; }
       .hero-visual { display: none; }
@@ -392,6 +521,57 @@
           <div class="route-actions"><button class="map-open" id="openMap" type="button">打开大图</button></div>
         </div>
         <p id="routeCaption">全程：香港 → 大阪 → 青森/弘前 → 角馆 → 秋田/田泽湖/大曲 → 东京/成田 → 香港</p>
+      </div>
+    </section>
+
+    <section class="band white" id="expenses">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Shared Ledger</p><h2>五人集体记账</h2></div><p class="subtle">记录只保存在当前浏览器</p></div>
+
+        <form class="expense-form" id="expenseForm">
+          <div class="form-grid">
+            <label class="form-field"><span>支出项目</span><input id="expenseDescription" name="description" type="text" maxlength="60" placeholder="例如：秋田站到民宿出租车" required></label>
+            <label class="form-field"><span>日期</span><input id="expenseDate" name="date" type="date" min="2026-09-21" max="2026-10-05" required></label>
+            <label class="form-field"><span>JPY 金额</span><input id="expenseAmount" name="amount" type="number" min="1" max="99999999" step="1" inputmode="numeric" placeholder="0" required></label>
+            <label class="form-field"><span>付款人</span><select id="expensePayer" name="payer" required><option value="转转">转转</option><option value="媛媛">媛媛</option><option value="恩浓">恩浓</option><option value="邱允">邱允</option><option value="妹妹">妹妹</option></select></label>
+          </div>
+          <div class="expense-form-bottom">
+            <fieldset class="split-field">
+              <legend>参与分摊人员</legend>
+              <div class="split-options">
+                <label class="split-option"><input type="checkbox" name="participants" value="转转" checked>转转</label>
+                <label class="split-option"><input type="checkbox" name="participants" value="媛媛" checked>媛媛</label>
+                <label class="split-option"><input type="checkbox" name="participants" value="恩浓" checked>恩浓</label>
+                <label class="split-option"><input type="checkbox" name="participants" value="邱允" checked>邱允</label>
+                <label class="split-option"><input type="checkbox" name="participants" value="妹妹" checked>妹妹</label>
+              </div>
+            </fieldset>
+            <div class="form-actions">
+              <label class="form-field"><span>结算状态</span><select id="expenseSettled" name="settled"><option value="false">未结清</option><option value="true">已结清</option></select></label>
+              <button class="secondary-button" id="cancelExpenseEdit" type="button" hidden>取消修改</button>
+              <button class="primary-button" id="saveExpense" type="submit">添加记录</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="expense-summary" aria-label="集体支出汇总">
+          <div class="expense-stat"><span>累计集体支出</span><b id="expenseTotal">JPY 0</b></div>
+          <div class="expense-stat"><span>未结清金额</span><b id="expenseOutstanding">JPY 0</b></div>
+          <div class="expense-stat"><span>记录笔数</span><b id="expenseCount">0 笔</b></div>
+          <div class="expense-stat"><span>当前筛选</span><b id="expenseVisibleCount">0 笔</b></div>
+        </div>
+        <div class="member-split" id="memberSplit" aria-label="五人分摊汇总"></div>
+
+        <div class="ledger-tools">
+          <div class="segmented" role="group" aria-label="按结算状态筛选">
+            <button class="segment-button" type="button" data-expense-filter="all" aria-pressed="true">全部</button>
+            <button class="segment-button" type="button" data-expense-filter="open" aria-pressed="false">未结清</button>
+            <button class="segment-button" type="button" data-expense-filter="settled" aria-pressed="false">已结清</button>
+          </div>
+          <button class="secondary-button" id="exportExpenses" type="button">导出 CSV</button>
+        </div>
+        <div class="expense-list" id="expenseList" aria-live="polite"></div>
+        <p class="fine">金额按所选参与人平均分摊；这里记录的是集体账目，不会联网同步。清除浏览器数据会同时清除记账记录，请定期导出 CSV 备份。</p>
       </div>
     </section>
 
@@ -536,6 +716,100 @@
             </div>
           </details>
         </div>
+      </div>
+    </section>
+
+    <section class="band white" id="food">
+      <div class="shell">
+        <div class="section-head"><div><p class="section-kicker">Food List</p><h2>计划打卡美食</h2></div><p class="subtle">图片来自 Japantrip 文件夹 · 点击查看大图</p></div>
+        <div class="food-grid">
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="牛丸图片">
+              <button class="food-photo" type="button" aria-label="查看牛丸图片 1"><img src="assets/food/gyumaru-1.jpg" alt="牛丸帝王蟹与和牛寿喜烧" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看牛丸图片 2"><img src="assets/food/gyumaru-2.jpg" alt="牛丸菜品参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看牛丸图片 3"><img src="assets/food/gyumaru-3.jpg" alt="牛丸菜品参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>牛丸</h3><span class="food-place">D1 · 大阪</span></div><div class="food-tags"><span class="food-tag">晚餐候选</span><span class="food-tag">17:00-00:00</span><span class="food-tag">待确认五人座</span></div><p>心斋桥附近，主打帝王蟹、和牛寿喜烧；当晚主餐只从候选中选择一家。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=FUKU+BLD+Higashishinsaibashi+2-8-26+Osaka" target="_blank" rel="noopener">地图查看牛丸</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="2" aria-label="大牧场寿喜烧图片">
+              <button class="food-photo" type="button" aria-label="查看大牧场寿喜烧图片 1"><img src="assets/food/daibokujo-1.jpg" alt="大牧场神户牛寿喜烧" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看大牧场寿喜烧图片 2"><img src="assets/food/daibokujo-2.jpg" alt="大牧场寿喜烧菜品参考图 2" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>大牧場寿喜烧</h3><span class="food-place">D1 · 大阪</span></div><div class="food-tags"><span class="food-tag">晚餐候选</span><span class="food-tag">难波站约 5 分钟</span><span class="food-tag">待预约</span></div><p>大阪千日前店，神户牛寿喜烧、涮涮锅候选；五人同桌容量需先确认。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=Daibokujyo+Namba+3-4-16+Osaka" target="_blank" rel="noopener">地图查看大牧場</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="千房千日前店图片">
+              <button class="food-photo" type="button" aria-label="查看千房图片 1"><img src="assets/food/chibo-sennichimae-1.jpg" alt="千房大阪烧" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看千房图片 2"><img src="assets/food/chibo-sennichimae-2.jpg" alt="千房菜品参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看千房图片 3"><img src="assets/food/chibo-sennichimae-3.jpg" alt="千房菜品参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>千房 千日前店</h3><span class="food-place">D1 · 大阪</span></div><div class="food-tags"><span class="food-tag">大阪烧</span><span class="food-tag">晚餐候选</span><span class="food-tag">营业时间待复核</span></div><p>位于难波千日前，适合安排大阪烧；现场排队与五人座位需要出发前确认。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=Chibo+Sennichimae+11-27+Osaka" target="_blank" rel="noopener">地图查看千房</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="MooKEN 图片">
+              <button class="food-photo" type="button" aria-label="查看 MooKEN 图片 1"><img src="assets/food/mooken-1.jpg" alt="MooKEN 小泡芙" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 MooKEN 图片 2"><img src="assets/food/mooken-2.jpg" alt="MooKEN 甜点参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 MooKEN 图片 3"><img src="assets/food/mooken-3.jpg" alt="MooKEN 甜点参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>MooKEN モーケン</h3><span class="food-place">D1 · 大阪</span></div><div class="food-tags"><span class="food-tag">小吃</span><span class="food-tag">心斋桥筋</span><span class="food-tag">顺路打卡</span></div><p>适合边逛边吃的小泡芙候选；按道顿堀、心斋桥当晚动线决定是否停留。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=MooKEN+Shinsaibashisuji+1-5-26+Osaka" target="_blank" rel="noopener">地图查看 MooKEN</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="吉次牛舌图片">
+              <button class="food-photo" type="button" aria-label="查看吉次牛舌图片 1"><img src="assets/food/kichi-ji-gyutan-1.jpg" alt="吉次烤牛舌" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看吉次牛舌图片 2"><img src="assets/food/kichi-ji-gyutan-2.jpg" alt="吉次牛舌菜品参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看吉次牛舌图片 3"><img src="assets/food/kichi-ji-gyutan-3.jpg" alt="吉次牛舌菜品参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>吉次牛舌</h3><span class="food-place">大阪候选</span></div><div class="food-tags"><span class="food-tag">牛舌</span><span class="food-tag">分店待定</span><span class="food-tag">五人座待确认</span></div><p>目前作为牛舌候选保留；选定分店后再放入具体日期和路线。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=Kichiji+Gyutan+Osaka" target="_blank" rel="noopener">地图搜索吉次牛舌</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="1" aria-label="拉面家あかき图片">
+              <button class="food-photo" type="button" aria-label="查看拉面家あかき图片"><img src="assets/food/ramen-akaki-1.jpg" alt="ラーメン家あかき拉面" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>ラーメン家あかき</h3><span class="food-place">大阪备选</span></div><div class="food-tags"><span class="food-tag">拉面</span><span class="food-tag">周一休息</span><span class="food-tag">不放入 D1 主路线</span></div><p>东淀川区瑞光 2-2-21；用户提供时段为 11:30-15:00、18:00-22:00，以官方公告为准。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=Ramen+Akaki+Zuiko+2-2-21+Osaka" target="_blank" rel="noopener">地图查看拉面家あかき</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="2" aria-label="HARBS 图片">
+              <button class="food-photo" type="button" aria-label="查看 HARBS 图片 1"><img src="assets/food/harbs-1.jpg" alt="HARBS 水果千层蛋糕" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 HARBS 图片 2"><img src="assets/food/harbs-2.jpg" alt="HARBS 蛋糕参考图 2" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>HARBS</h3><span class="food-place">大阪候选</span></div><div class="food-tags"><span class="food-tag">甜点</span><span class="food-tag">水果千层</span><span class="food-tag">按动线选分店</span></div><p>作为逛街途中的甜点候选，分店和排队情况按当天心斋桥、难波动线选择。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=HARBS+Shinsaibashi+Osaka" target="_blank" rel="noopener">地图搜索 HARBS</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="LILO COFFEE KISSA 图片">
+              <button class="food-photo" type="button" aria-label="查看 LILO COFFEE KISSA 图片 1"><img src="assets/food/lilo-coffee-kissa-1.jpg" alt="LILO COFFEE KISSA 门店甜点展示" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 LILO COFFEE KISSA 图片 2"><img src="assets/food/lilo-coffee-kissa-2.jpg" alt="LILO COFFEE KISSA 参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 LILO COFFEE KISSA 图片 3"><img src="assets/food/lilo-coffee-kissa-3.jpg" alt="LILO COFFEE KISSA 参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>LILO COFFEE KISSA</h3><span class="food-place">D1 · 大阪</span></div><div class="food-tags"><span class="food-tag">咖啡</span><span class="food-tag">面包甜点</span><span class="food-tag">营业时间待复核</span></div><p>心斋桥附近的咖啡候选，适合安排为逛街中途休息点。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=LILO+COFFEE+KISSA+Osaka" target="_blank" rel="noopener">地图查看 LILO COFFEE KISSA</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="Marron 图片">
+              <button class="food-photo" type="button" aria-label="查看 Marron 图片 1"><img src="assets/food/marron-1.jpg" alt="Marron 黄油吐司早餐" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 Marron 图片 2"><img src="assets/food/marron-2.jpg" alt="Marron 早餐参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 Marron 图片 3"><img src="assets/food/marron-3.jpg" alt="Marron 早餐参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>Marron</h3><span class="food-place">D4 · 青森</span></div><div class="food-tags"><span class="food-tag">早餐候选</span><span class="food-tag">黄油吐司</span><span class="food-tag">分店待确认</span></div><p>青森早餐候选；需根据民宿到青森站的动线确认具体门店和营业时间。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=Marron+Cafe+Aomori" target="_blank" rel="noopener">地图搜索 Marron</a></div>
+          </article>
+
+          <article class="food-card">
+            <div class="food-gallery" data-count="3" aria-label="Daijun 炭火烧肉图片">
+              <button class="food-photo" type="button" aria-label="查看 Daijun 图片 1"><img src="assets/food/daijun-1.jpg" alt="Daijun 炭火烧肉配饭" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 Daijun 图片 2"><img src="assets/food/daijun-2.jpg" alt="Daijun 炭火烧肉参考图 2" loading="lazy" decoding="async"></button>
+              <button class="food-photo" type="button" aria-label="查看 Daijun 图片 3"><img src="assets/food/daijun-3.jpg" alt="Daijun 炭火烧肉参考图 3" loading="lazy" decoding="async"></button>
+            </div>
+            <div class="food-card-body"><div class="food-card-top"><h3>Daijun 炭火焼肉 だいじゅん</h3><span class="food-place">D4 · 青森</span></div><div class="food-tags"><span class="food-tag">晚餐候选</span><span class="food-tag">仅现金</span><span class="food-tag">待确认五人座</span></div><p>日本烤肉晚餐候选，用户备注评价推荐且只能使用现金；分店、营业时间与预约需复核。</p><a class="food-map" href="https://www.google.com/maps/search/?api=1&query=炭火焼肉+だいじゅん+青森" target="_blank" rel="noopener">地图搜索 Daijun</a></div>
+          </article>
+        </div>
+        <p class="fine">美食图片为计划参考，不代表已预约或当日一定供应。D1 主餐候选只选择一家，其他按距离、营业状态和五人座位作为备选。</p>
       </div>
     </section>
 
@@ -710,6 +984,18 @@
     <div class="dialog-map" id="dialogMap"></div>
   </dialog>
 
+  <dialog id="foodDialog" aria-labelledby="foodDialogTitle">
+    <div class="dialog-head">
+      <strong id="foodDialogTitle">美食图片</strong>
+      <button class="zoom-button" id="closeFood" type="button" title="关闭" aria-label="关闭">×</button>
+    </div>
+    <div class="food-dialog-body">
+      <button class="photo-nav" id="foodPrev" type="button" title="上一张" aria-label="上一张">‹</button>
+      <img id="foodDialogImage" src="" alt="">
+      <button class="photo-nav" id="foodNext" type="button" title="下一张" aria-label="下一张">›</button>
+    </div>
+  </dialog>
+
   <script>
     const events = [
       { time: "2026-09-28T05:45:00+08:00", title: "香港国际机场集合", place: "HKG · 建议时间" },
@@ -798,6 +1084,287 @@
         try { localStorage.setItem(`jp-trip-${input.id}`, input.checked ? "1" : "0"); } catch (_) {}
       });
     });
+
+    const foodDialog = $("#foodDialog");
+    const foodDialogImage = $("#foodDialogImage");
+    const foodDialogTitle = $("#foodDialogTitle");
+    let foodImages = [];
+    let foodImageIndex = 0;
+    let foodDialogTrigger = null;
+
+    function showFoodImage(index) {
+      if (!foodImages.length) return;
+      foodImageIndex = (index + foodImages.length) % foodImages.length;
+      const image = foodImages[foodImageIndex];
+      foodDialogImage.src = image.currentSrc || image.src;
+      foodDialogImage.alt = image.alt;
+      foodDialogTitle.textContent = `${image.alt} · ${foodImageIndex + 1}/${foodImages.length}`;
+      $("#foodPrev").disabled = foodImages.length < 2;
+      $("#foodNext").disabled = foodImages.length < 2;
+    }
+
+    $$(".food-photo").forEach(button => button.addEventListener("click", () => {
+      foodDialogTrigger = button;
+      foodImages = $$("img", button.closest(".food-gallery"));
+      foodImageIndex = foodImages.indexOf(button.querySelector("img"));
+      showFoodImage(foodImageIndex);
+      foodDialog.showModal();
+      $("#closeFood").focus();
+    }));
+    $("#foodPrev").addEventListener("click", () => showFoodImage(foodImageIndex - 1));
+    $("#foodNext").addEventListener("click", () => showFoodImage(foodImageIndex + 1));
+    $("#closeFood").addEventListener("click", () => foodDialog.close());
+    foodDialog.addEventListener("click", event => { if (event.target === foodDialog) foodDialog.close(); });
+    foodDialog.addEventListener("keydown", event => {
+      if (event.key === "ArrowLeft") showFoodImage(foodImageIndex - 1);
+      if (event.key === "ArrowRight") showFoodImage(foodImageIndex + 1);
+    });
+    foodDialog.addEventListener("close", () => {
+      foodDialogImage.src = "";
+      if (foodDialogTrigger) foodDialogTrigger.focus();
+    });
+
+    const travelers = ["转转", "媛媛", "恩浓", "邱允", "妹妹"];
+    const expenseStorageKey = "jp-trip-expenses-v1";
+    const expenseForm = $("#expenseForm");
+    const expenseList = $("#expenseList");
+    let expenseFilter = "all";
+    let editingExpenseId = null;
+
+    function loadExpenses() {
+      try {
+        const value = JSON.parse(localStorage.getItem(expenseStorageKey) || "[]");
+        if (!Array.isArray(value)) return [];
+        return value.filter(item => item && typeof item === "object").map(item => ({
+          id: String(item.id || ""),
+          description: String(item.description || "").slice(0, 60),
+          date: /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : "2026-09-28",
+          amount: Math.max(0, Math.round(Number(item.amount) || 0)),
+          payer: travelers.includes(item.payer) ? item.payer : travelers[0],
+          participants: Array.isArray(item.participants) ? item.participants.filter(name => travelers.includes(name)) : [],
+          settled: item.settled === true,
+          createdAt: Number(item.createdAt) || 0
+        })).filter(item => item.id && item.description && item.amount > 0 && item.participants.length);
+      } catch (_) {
+        return [];
+      }
+    }
+
+    let expenses = loadExpenses();
+
+    function saveExpenses() {
+      try {
+        localStorage.setItem(expenseStorageKey, JSON.stringify(expenses));
+        return true;
+      } catch (_) {
+        alert("当前浏览器无法保存记录，请先导出已有账目后检查存储空间。");
+        return false;
+      }
+    }
+
+    function formatJpy(value) {
+      return `JPY ${Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 1 })}`;
+    }
+
+    function appendRecordCell(record, label, value, className = "") {
+      const cell = document.createElement("div");
+      if (className) cell.className = className;
+      const caption = document.createElement("span");
+      caption.className = "record-label";
+      caption.textContent = label;
+      const content = document.createElement("span");
+      content.textContent = value;
+      cell.append(caption, content);
+      record.appendChild(cell);
+      return content;
+    }
+
+    function renderExpenses() {
+      const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+      const outstanding = expenses.filter(item => !item.settled).reduce((sum, item) => sum + item.amount, 0);
+      const visible = expenses.filter(item => expenseFilter === "all" || (expenseFilter === "settled" ? item.settled : !item.settled));
+      $("#expenseTotal").textContent = formatJpy(total);
+      $("#expenseOutstanding").textContent = formatJpy(outstanding);
+      $("#expenseCount").textContent = `${expenses.length} 笔`;
+      $("#expenseVisibleCount").textContent = `${visible.length} 笔`;
+
+      const shares = Object.fromEntries(travelers.map(name => [name, { total: 0, outstanding: 0 }]));
+      expenses.forEach(item => {
+        const share = item.amount / item.participants.length;
+        item.participants.forEach(name => {
+          shares[name].total += share;
+          if (!item.settled) shares[name].outstanding += share;
+        });
+      });
+      const memberSplit = $("#memberSplit");
+      memberSplit.replaceChildren();
+      travelers.forEach(name => {
+        const block = document.createElement("div");
+        block.className = "member-share";
+        const title = document.createElement("b");
+        title.textContent = `${name} · ${formatJpy(shares[name].total)}`;
+        const detail = document.createElement("small");
+        detail.textContent = `未结清分摊 ${formatJpy(shares[name].outstanding)}`;
+        block.append(title, detail);
+        memberSplit.appendChild(block);
+      });
+
+      expenseList.replaceChildren();
+      if (!visible.length) {
+        const empty = document.createElement("div");
+        empty.className = "expense-empty";
+        empty.textContent = expenses.length ? "当前筛选下没有记录。" : "还没有集体支出，使用上方表单添加第一笔。";
+        expenseList.appendChild(empty);
+        return;
+      }
+
+      [...visible].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt).forEach(item => {
+        const record = document.createElement("article");
+        record.className = `expense-record${item.settled ? " settled" : ""}`;
+        record.dataset.expenseId = item.id;
+        appendRecordCell(record, "日期", item.date.slice(5).replace("-", "/"));
+        const description = appendRecordCell(record, "项目", item.description, "record-description");
+        description.style.fontWeight = "750";
+        const amount = appendRecordCell(record, "金额", formatJpy(item.amount));
+        amount.className = "record-amount";
+        appendRecordCell(record, "付款人", item.payer);
+        appendRecordCell(record, "参与分摊", item.participants.join("、"), "record-participants");
+        const status = document.createElement("div");
+        const statusText = document.createElement("span");
+        statusText.className = `status ${item.settled ? "confirmed" : "pending"}`;
+        statusText.textContent = item.settled ? "已结清" : "未结清";
+        status.appendChild(statusText);
+        record.appendChild(status);
+        const actions = document.createElement("div");
+        actions.className = "record-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "record-icon";
+        edit.dataset.action = "edit";
+        edit.title = "编辑这笔记录";
+        edit.setAttribute("aria-label", `编辑 ${item.description}`);
+        edit.textContent = "✎";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "record-icon delete";
+        remove.dataset.action = "delete";
+        remove.title = "删除这笔记录";
+        remove.setAttribute("aria-label", `删除 ${item.description}`);
+        remove.textContent = "×";
+        actions.append(edit, remove);
+        record.appendChild(actions);
+        expenseList.appendChild(record);
+      });
+    }
+
+    function resetExpenseForm() {
+      editingExpenseId = null;
+      expenseForm.reset();
+      const today = new Date().toISOString().slice(0, 10);
+      $("#expenseDate").value = today >= "2026-09-21" && today <= "2026-10-05" ? today : "2026-09-28";
+      $$('input[name="participants"]', expenseForm).forEach(input => input.checked = true);
+      $("#saveExpense").textContent = "添加记录";
+      $("#cancelExpenseEdit").hidden = true;
+    }
+
+    expenseForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const participants = $$('input[name="participants"]:checked', expenseForm).map(input => input.value);
+      const firstParticipant = $('input[name="participants"]', expenseForm);
+      firstParticipant.setCustomValidity(participants.length ? "" : "请至少选择一位参与分摊人员");
+      if (!participants.length) {
+        firstParticipant.reportValidity();
+        return;
+      }
+      const amount = Math.round(Number($("#expenseAmount").value));
+      if (!Number.isFinite(amount) || amount < 1) return;
+      const item = {
+        id: editingExpenseId || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
+        description: $("#expenseDescription").value.trim(),
+        date: $("#expenseDate").value,
+        amount,
+        payer: $("#expensePayer").value,
+        participants,
+        settled: $("#expenseSettled").value === "true",
+        createdAt: Date.now()
+      };
+      if (!item.description) return;
+      if (editingExpenseId) {
+        const index = expenses.findIndex(expense => expense.id === editingExpenseId);
+        if (index >= 0) item.createdAt = expenses[index].createdAt;
+        if (index >= 0) expenses[index] = item;
+      } else {
+        expenses.push(item);
+      }
+      if (saveExpenses()) {
+        resetExpenseForm();
+        renderExpenses();
+      }
+    });
+
+    $("#cancelExpenseEdit").addEventListener("click", resetExpenseForm);
+    expenseList.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      const record = event.target.closest("[data-expense-id]");
+      if (!button || !record) return;
+      const item = expenses.find(expense => expense.id === record.dataset.expenseId);
+      if (!item) return;
+      if (button.dataset.action === "delete") {
+        if (!confirm(`删除“${item.description}”这笔记录？`)) return;
+        expenses = expenses.filter(expense => expense.id !== item.id);
+        if (editingExpenseId === item.id) resetExpenseForm();
+        if (saveExpenses()) renderExpenses();
+        return;
+      }
+      editingExpenseId = item.id;
+      $("#expenseDescription").value = item.description;
+      $("#expenseDate").value = item.date;
+      $("#expenseAmount").value = item.amount;
+      $("#expensePayer").value = item.payer;
+      $("#expenseSettled").value = String(item.settled);
+      $$('input[name="participants"]', expenseForm).forEach(input => input.checked = item.participants.includes(input.value));
+      $("#saveExpense").textContent = "保存修改";
+      $("#cancelExpenseEdit").hidden = false;
+      expenseForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#expenseDescription").focus({ preventScroll: true });
+    });
+
+    $$("[data-expense-filter]").forEach(button => button.addEventListener("click", () => {
+      expenseFilter = button.dataset.expenseFilter;
+      $$("[data-expense-filter]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+      renderExpenses();
+    }));
+
+    $("#exportExpenses").addEventListener("click", () => {
+      if (!expenses.length) {
+        alert("暂无可导出的记账记录。");
+        return;
+      }
+      const escapeCsv = value => `"${String(value).replaceAll('"', '""')}"`;
+      const rows = [["日期", "支出项目", "JPY金额", "付款人", "参与分摊人员", "结算状态"], ...expenses.map(item => [item.date, item.description, item.amount, item.payer, item.participants.join("、"), item.settled ? "已结清" : "未结清"])];
+      const csv = `\ufeff${rows.map(row => row.map(escapeCsv).join(",")).join("\r\n")}`;
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "japan-trip-2026-expenses.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    window.addEventListener("storage", event => {
+      if (event.key !== expenseStorageKey) return;
+      expenses = loadExpenses();
+      renderExpenses();
+    });
+    resetExpenseForm();
+    renderExpenses();
+
+    window.addEventListener("load", () => {
+      const section = new URLSearchParams(location.search).get("section") || location.hash.slice(1);
+      if (!section) return;
+      const target = document.getElementById(section);
+      if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: "instant", block: "start" }));
+    }, { once: true });
 
     const dialog = $("#mapDialog");
     const routeSvg = $(".route-board svg");
