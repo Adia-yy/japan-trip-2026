@@ -567,14 +567,15 @@
           </div>
           <div class="sync-controls" id="expenseSignedOut">
             <div class="segmented sync-auth-modes" role="group" aria-label="登录方式">
-              <button class="segment-button" type="button" data-expense-auth-mode="password" aria-pressed="true">密码登录</button>
-              <button class="segment-button" type="button" data-expense-auth-mode="magic" aria-pressed="false">邮箱链接</button>
+              <button class="segment-button" type="button" data-expense-auth-mode="login" aria-pressed="true">登录</button>
+              <button class="segment-button" type="button" data-expense-auth-mode="register" aria-pressed="false">首次注册</button>
             </div>
-            <label class="form-field sync-email"><span>成员邮箱</span><input id="expenseLoginEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com"></label>
-            <label class="form-field sync-password" id="expensePasswordField"><span>密码</span><input id="expenseLoginPassword" type="password" minlength="8" autocomplete="current-password" placeholder="至少 8 位"></label>
+            <label class="form-field sync-email"><span>成员</span><select id="expenseLoginName" autocomplete="username" required><option value="zhuanzhuan">转转</option><option value="yuanyuan">媛媛</option><option value="ennong">恩浓</option><option value="qiuyun">邱允</option><option value="meimei">妹妹</option></select></label>
+            <label class="form-field sync-password"><span>密码</span><input id="expenseLoginPassword" type="password" minlength="8" autocomplete="current-password" placeholder="至少 8 位"></label>
+            <label class="form-field sync-password" id="expenseRegisterConfirmField" hidden><span>确认密码</span><input id="expenseRegisterPasswordConfirm" type="password" minlength="8" autocomplete="new-password" placeholder="再次输入"></label>
+            <label class="form-field sync-password" id="expenseRegistrationCodeField" hidden><span>一次性注册码</span><input id="expenseRegistrationCode" type="text" maxlength="32" autocomplete="one-time-code" placeholder="输入个人注册码"></label>
             <button class="primary-button" id="expensePasswordLogin" type="button">登录</button>
-            <button class="secondary-button" id="expenseForgotPassword" type="button">设置/忘记密码</button>
-            <button class="primary-button" id="expenseSendLink" type="button" hidden>发送登录链接</button>
+            <button class="primary-button" id="expenseRegister" type="button" hidden>创建账号</button>
           </div>
           <div class="sync-controls" id="expenseSignedIn" hidden>
             <span class="sync-detail" id="expenseSyncIdentity"></span>
@@ -1194,7 +1195,6 @@
     const expenseTripId = "japan-trip-2026";
     const supabaseUrl = "https://zoflhmscphbbonaepbgh.supabase.co";
     const supabasePublishableKey = "sb_publishable_R4i4VHhJ6WHU02dMR5cp_Q_rmOOvNek";
-    const publishedTripUrl = "https://adia-yy.github.io/japan-trip-2026/";
     const expenseForm = $("#expenseForm");
     const expenseList = $("#expenseList");
     let expenseFilter = "all";
@@ -1204,10 +1204,10 @@
     let expenseCloudMember = "";
     let expenseCloudChannel = null;
     let expenseSyncTimer = null;
-    let expenseEmailCooldownTimer = null;
     let expenseSyncing = false;
     let expenseSyncRequested = false;
-    let expensePasswordRecovery = new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
+    let expensePasswordEditing = false;
+    let expenseRegistrationInProgress = false;
 
     function createExpenseId() {
       if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -1304,59 +1304,34 @@
 
     function expenseAuthErrorMessage(error) {
       const message = String(error?.message || "");
-      const code = String(error?.code || "");
-      if (/only request this after/i.test(message)) {
-        return "邮件请求过于频繁，请至少等待 60 秒后再试，不要连续点击。";
-      }
-      if (code === "over_email_send_rate_limit" || /email rate limit exceeded/i.test(message)) {
-        return "Supabase 邮件额度已达上限。已有密码请改用“密码登录”；首次登录通常需要等待约 1 小时后再尝试一次。";
-      }
+      if (/INVALID_OR_USED_REGISTRATION_CODE/i.test(message)) return "注册码不正确，或该成员账号已经注册。";
+      if (/ACCOUNT_ALREADY_CLAIMED/i.test(message)) return "该成员账号已经注册，请切换到登录。";
+      if (/INVALID_REGISTRATION/i.test(message)) return "注册验证失败，请刷新页面后重试。";
+      if (/Email not confirmed/i.test(message)) return "请先在 Supabase 关闭 Confirm email，再重新注册。";
+      if (/Invalid login credentials/i.test(message)) return "成员或密码不正确；首次使用请先注册。";
+      if (/User already registered|already been registered/i.test(message)) return "该成员账号已经注册，请切换到登录。";
       if (error?.status === 429 || /rate limit/i.test(message)) return "请求次数已达上限，请稍后再试。";
       return message || "操作失败，请稍后再试。";
     }
 
-    function startExpenseEmailCooldown() {
-      clearInterval(expenseEmailCooldownTimer);
-      const endsAt = Date.now() + 60000;
-      const buttons = [
-        [$("#expenseForgotPassword"), "设置/忘记密码"],
-        [$("#expenseSendLink"), "发送登录链接"]
-      ];
-      const update = () => {
-        const seconds = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-        buttons.forEach(([button, label]) => {
-          button.disabled = seconds > 0;
-          button.textContent = seconds > 0 ? `${seconds} 秒后可发送` : label;
-        });
-        if (seconds === 0) {
-          clearInterval(expenseEmailCooldownTimer);
-          expenseEmailCooldownTimer = null;
-        }
-      };
-      update();
-      expenseEmailCooldownTimer = setInterval(update, 1000);
-    }
-
     function setExpenseAuthView(session, memberName = "") {
-      $("#expenseSignedOut").hidden = Boolean(session) || expensePasswordRecovery;
-      $("#expenseSignedIn").hidden = !session || expensePasswordRecovery;
-      $("#expensePasswordReset").hidden = !expensePasswordRecovery;
+      $("#expenseSignedOut").hidden = Boolean(session) || expensePasswordEditing;
+      $("#expenseSignedIn").hidden = !session || expensePasswordEditing;
+      $("#expensePasswordReset").hidden = !expensePasswordEditing;
       $("#expenseSyncIdentity").textContent = memberName ? `${memberName} · 已登录` : "正在验证成员身份";
       $("#expenseSyncNow").disabled = !memberName;
     }
 
     function setExpenseAuthMode(mode) {
-      const passwordMode = mode === "password";
-      $("#expensePasswordField").hidden = !passwordMode;
-      $("#expensePasswordLogin").hidden = !passwordMode;
-      $("#expenseForgotPassword").hidden = !passwordMode;
-      $("#expenseSendLink").hidden = passwordMode;
+      const registering = mode === "register";
+      $("#expenseRegisterConfirmField").hidden = !registering;
+      $("#expenseRegistrationCodeField").hidden = !registering;
+      $("#expensePasswordLogin").hidden = registering;
+      $("#expenseRegister").hidden = !registering;
+      $("#expenseLoginPassword").autocomplete = registering ? "new-password" : "current-password";
+      $("#expenseRegisterPasswordConfirm").setCustomValidity("");
       $$('[data-expense-auth-mode]').forEach(button => button.setAttribute("aria-pressed", String(button.dataset.expenseAuthMode === mode)));
       setExpenseSyncMessage();
-    }
-
-    function expenseAuthRedirectUrl() {
-      return location.protocol === "https:" || location.protocol === "http:" ? `${location.origin}${location.pathname}` : publishedTripUrl;
     }
 
     function remoteExpenseToLocal(item) {
@@ -1459,18 +1434,17 @@
     }
 
     async function handleExpenseSession(session, authEvent = "") {
-      if (authEvent === "PASSWORD_RECOVERY") expensePasswordRecovery = true;
-      if (authEvent === "SIGNED_OUT") expensePasswordRecovery = false;
+      if (authEvent === "SIGNED_OUT") expensePasswordEditing = false;
       expenseCloudSession = session;
       expenseCloudMember = "";
       setExpenseAuthView(session);
       if (!session) {
         if (expenseCloudChannel) await expenseCloud.removeChannel(expenseCloudChannel);
         expenseCloudChannel = null;
-        setExpenseSyncStatus("local", "本地模式", "输入成员邮箱登录五人共享账本");
+        setExpenseSyncStatus("local", "本地模式", "选择成员并登录五人共享账本");
         return;
       }
-      if (expensePasswordRecovery) {
+      if (expensePasswordEditing) {
         setExpenseSyncStatus("syncing", "设置新密码", "请输入至少 8 位的新密码");
         setExpenseSyncMessage("密码只会提交给 Supabase Auth，不会保存在网页中。", "success");
         $("#expenseNewPassword").focus({ preventScroll: true });
@@ -1483,8 +1457,8 @@
         .eq("user_id", session.user.id)
         .maybeSingle();
       if (error || !data) {
-        setExpenseSyncStatus("error", "无账本权限", "当前邮箱不在五人行成员名单中");
-        setExpenseSyncMessage(error ? `验证失败：${error.message}` : "请使用已登记的成员邮箱登录");
+        setExpenseSyncStatus("error", "无账本权限", "当前账号未绑定五人行成员");
+        setExpenseSyncMessage(error ? `验证失败：${error.message}` : "该账号尚未完成成员注册");
         setExpenseAuthView(session);
         return;
       }
@@ -1511,7 +1485,7 @@
     }
 
     async function initializeExpenseCloud() {
-      ["#expenseSendLink", "#expensePasswordLogin", "#expenseForgotPassword"].forEach(selector => $(selector).disabled = true);
+      ["#expensePasswordLogin", "#expenseRegister"].forEach(selector => $(selector).disabled = true);
       setExpenseSyncStatus("syncing", "连接云端", "正在初始化五人共享账本");
       try {
         const library = await loadSupabaseLibrary();
@@ -1519,7 +1493,9 @@
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
         expenseCloud.auth.onAuthStateChange((event, session) => {
-          setTimeout(() => handleExpenseSession(session, event), 0);
+          setTimeout(() => {
+            if (!expenseRegistrationInProgress) handleExpenseSession(session, event);
+          }, 0);
         });
         const { data, error } = await expenseCloud.auth.getSession();
         if (error) throw error;
@@ -1528,20 +1504,15 @@
         setExpenseSyncStatus("offline", "本地模式", "云同步暂不可用，本地记账不受影响");
         setExpenseSyncMessage(error.message || "无法连接云端");
       } finally {
-        ["#expenseSendLink", "#expensePasswordLogin", "#expenseForgotPassword"].forEach(selector => $(selector).disabled = false);
+        ["#expensePasswordLogin", "#expenseRegister"].forEach(selector => $(selector).disabled = false);
       }
     }
 
     $$('[data-expense-auth-mode]').forEach(button => button.addEventListener("click", () => setExpenseAuthMode(button.dataset.expenseAuthMode)));
 
     $("#expensePasswordLogin").addEventListener("click", async () => {
-      const emailInput = $("#expenseLoginEmail");
+      const loginName = $("#expenseLoginName").value;
       const passwordInput = $("#expenseLoginPassword");
-      const email = emailInput.value.trim().toLowerCase();
-      if (!emailInput.checkValidity() || !email) {
-        emailInput.reportValidity();
-        return;
-      }
       if (!passwordInput.checkValidity() || !passwordInput.value) {
         passwordInput.reportValidity();
         return;
@@ -1551,43 +1522,100 @@
       const button = $("#expensePasswordLogin");
       button.disabled = true;
       setExpenseSyncMessage();
-      setExpenseSyncStatus("syncing", "正在登录", "验证成员邮箱和密码");
-      const { error } = await expenseCloud.auth.signInWithPassword({ email, password: passwordInput.value });
-      passwordInput.value = "";
-      button.disabled = false;
-      if (error) {
-        setExpenseSyncStatus("error", "登录失败", "请检查邮箱和密码");
-        setExpenseSyncMessage(error.message === "Invalid login credentials" ? "邮箱或密码不正确；首次使用请先设置密码。" : error.message);
+      setExpenseSyncStatus("syncing", "正在登录", "验证成员和密码");
+      try {
+        const lookup = await expenseCloud.rpc("resolve_trip_login", {
+          requested_trip_id: expenseTripId,
+          requested_login_name: loginName
+        });
+        if (lookup.error) throw lookup.error;
+        if (!lookup.data) throw new Error("Invalid login credentials");
+        const { error } = await expenseCloud.auth.signInWithPassword({ email: lookup.data, password: passwordInput.value });
+        if (error) throw error;
+      } catch (error) {
+        setExpenseSyncStatus("error", "登录失败", "请检查成员和密码");
+        setExpenseSyncMessage(expenseAuthErrorMessage(error));
+      } finally {
+        passwordInput.value = "";
+        button.disabled = false;
       }
     });
 
-    $("#expenseForgotPassword").addEventListener("click", async () => {
-      const input = $("#expenseLoginEmail");
-      const email = input.value.trim().toLowerCase();
-      if (!input.checkValidity() || !email) {
-        input.reportValidity();
+    $("#expenseRegister").addEventListener("click", async () => {
+      const loginName = $("#expenseLoginName").value;
+      const password = $("#expenseLoginPassword");
+      const confirmation = $("#expenseRegisterPasswordConfirm");
+      const codeInput = $("#expenseRegistrationCode");
+      if (!password.checkValidity() || !password.value) {
+        password.reportValidity();
         return;
       }
+      if (password.value !== confirmation.value) {
+        confirmation.setCustomValidity("两次输入的密码不一致");
+        confirmation.reportValidity();
+        return;
+      }
+      confirmation.setCustomValidity("");
+      const registrationCode = codeInput.value.trim().toUpperCase();
+      if (!registrationCode) {
+        codeInput.setCustomValidity("请输入个人一次性注册码");
+        codeInput.reportValidity();
+        return;
+      }
+      codeInput.setCustomValidity("");
       if (!expenseCloud) await initializeExpenseCloud();
       if (!expenseCloud) return;
-      const button = $("#expenseForgotPassword");
+      const button = $("#expenseRegister");
+      const passwordValue = password.value;
+      let session = null;
       button.disabled = true;
+      expenseRegistrationInProgress = true;
       setExpenseSyncMessage();
-      setExpenseSyncStatus("syncing", "正在发送", "发送密码设置邮件");
-      startExpenseEmailCooldown();
-      const { error } = await expenseCloud.auth.resetPasswordForEmail(email, { redirectTo: expenseAuthRedirectUrl() });
-      if (error) {
-        setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
+      setExpenseSyncStatus("syncing", "正在注册", "创建成员账号并绑定五人账本");
+      try {
+        const registration = await expenseCloud.rpc("begin_trip_registration", {
+          requested_trip_id: expenseTripId,
+          requested_login_name: loginName,
+          registration_code: registrationCode
+        });
+        if (registration.error) throw registration.error;
+        const signUp = await expenseCloud.auth.signUp({
+          email: registration.data,
+          password: passwordValue,
+          options: { data: { trip_id: expenseTripId, login_name: loginName } }
+        });
+        if (signUp.error && !/already/i.test(signUp.error.message || "")) throw signUp.error;
+        session = signUp.data?.session || null;
+        if (!session) {
+          const signIn = await expenseCloud.auth.signInWithPassword({ email: registration.data, password: passwordValue });
+          if (signIn.error) throw signIn.error;
+          session = signIn.data.session;
+        }
+        const claim = await expenseCloud.rpc("claim_trip_account", {
+          requested_trip_id: expenseTripId,
+          requested_login_name: loginName,
+          registration_code: registrationCode
+        });
+        if (claim.error) throw claim.error;
+        expensePasswordEditing = false;
+        await handleExpenseSession(session, "SIGNED_IN");
+        setExpenseSyncMessage(`${claim.data}账号注册成功。`, "success");
+      } catch (error) {
+        if (session) await expenseCloud.auth.signOut();
+        setExpenseSyncStatus("error", "注册失败", "账号尚未创建，可检查后重试");
         setExpenseSyncMessage(expenseAuthErrorMessage(error));
-        return;
+      } finally {
+        expenseRegistrationInProgress = false;
+        password.value = "";
+        confirmation.value = "";
+        codeInput.value = "";
+        button.disabled = false;
       }
-      setExpenseSyncStatus("local", "密码邮件已发送", "打开邮件链接后回到这里设置新密码");
-      setExpenseSyncMessage("邮件可能需要几分钟到达，请同时检查垃圾邮件。", "success");
     });
 
     $("#expenseSetPassword").addEventListener("click", () => {
       if (!expenseCloudSession) return;
-      expensePasswordRecovery = true;
+      expensePasswordEditing = true;
       setExpenseAuthView(expenseCloudSession, expenseCloudMember);
       setExpenseSyncStatus("syncing", "设置新密码", "请输入至少 8 位的新密码");
       setExpenseSyncMessage("当前会话已验证，可以直接设置密码。", "success");
@@ -1595,7 +1623,7 @@
     });
 
     $("#expenseCancelPassword").addEventListener("click", () => {
-      expensePasswordRecovery = false;
+      expensePasswordEditing = false;
       $("#expenseNewPassword").value = "";
       $("#expenseConfirmPassword").value = "";
       $("#expenseConfirmPassword").setCustomValidity("");
@@ -1626,37 +1654,13 @@
       confirmation.value = "";
       button.disabled = false;
       if (error) {
-        setExpenseSyncStatus("error", "保存失败", "请重新打开密码设置邮件后再试");
+        setExpenseSyncStatus("error", "保存失败", "请稍后重试或联系管理员");
         setExpenseSyncMessage(error.message);
         return;
       }
-      expensePasswordRecovery = false;
-      setExpenseSyncMessage("密码已设置，后续可以直接使用邮箱和密码登录。", "success");
+      expensePasswordEditing = false;
+      setExpenseSyncMessage("密码已设置，后续可以直接使用成员和密码登录。", "success");
       await handleExpenseSession(expenseCloudSession, "USER_UPDATED");
-    });
-
-    $("#expenseSendLink").addEventListener("click", async () => {
-      const input = $("#expenseLoginEmail");
-      const email = input.value.trim().toLowerCase();
-      if (!input.checkValidity() || !email) {
-        input.reportValidity();
-        return;
-      }
-      if (!expenseCloud) await initializeExpenseCloud();
-      if (!expenseCloud) return;
-      const button = $("#expenseSendLink");
-      button.disabled = true;
-      setExpenseSyncMessage();
-      setExpenseSyncStatus("syncing", "正在发送", "请稍候");
-      startExpenseEmailCooldown();
-      const { error } = await expenseCloud.auth.signInWithOtp({ email, options: { emailRedirectTo: expenseAuthRedirectUrl(), shouldCreateUser: true } });
-      if (error) {
-        setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
-        setExpenseSyncMessage(expenseAuthErrorMessage(error));
-        return;
-      }
-      setExpenseSyncStatus("local", "登录链接已发送", "请到邮箱打开链接，返回网页后将自动同步");
-      setExpenseSyncMessage("邮件可能需要几分钟到达，请同时检查垃圾邮件。", "success");
     });
 
     $("#expenseSyncNow").addEventListener("click", syncExpensesCloud);
@@ -1669,7 +1673,7 @@
     window.addEventListener("offline", () => {
       if (expenseCloudSession) setExpenseSyncStatus("offline", "离线模式", "变更已保存在本机，联网后自动重试");
     });
-    setExpenseAuthMode("password");
+    setExpenseAuthMode("login");
 
     function formatJpy(value) {
       return `JPY ${Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 1 })}`;
