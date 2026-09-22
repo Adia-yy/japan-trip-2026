@@ -255,6 +255,36 @@
     .budget-item b { display: block; margin-top: 4px; font-size: 20px; }
 
     .expense-form { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .sync-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-left: 4px solid #8a918d;
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .sync-panel[data-state="online"] { border-left-color: var(--green); }
+    .sync-panel[data-state="syncing"] { border-left-color: var(--blue); }
+    .sync-panel[data-state="offline"], .sync-panel[data-state="error"] { border-left-color: var(--gold); }
+    .sync-copy { min-width: 0; }
+    .sync-title { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+    .sync-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: #8a918d; }
+    .sync-panel[data-state="online"] .sync-dot { background: var(--green); }
+    .sync-panel[data-state="syncing"] .sync-dot { background: var(--blue); }
+    .sync-panel[data-state="offline"] .sync-dot, .sync-panel[data-state="error"] .sync-dot { background: var(--gold); }
+    .sync-detail { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .sync-controls { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: end; gap: 8px; }
+    .sync-auth-modes { flex: 0 0 100%; width: fit-content; }
+    .sync-email { width: min(280px, 100%); }
+    .sync-password { width: min(220px, 100%); }
+    .sync-email input, .sync-password input { min-height: 40px; }
+    .sync-message { grid-column: 1 / -1; margin: -4px 0 0; color: #8c2a24; font-size: 12px; }
+    .sync-message[data-kind="success"] { color: var(--green); }
+    .sync-controls button:disabled { cursor: wait; opacity: .6; }
     .form-grid { display: grid; grid-template-columns: 1.35fr .8fr .8fr .85fr; gap: 14px; }
     .form-field { display: grid; align-content: start; gap: 6px; min-width: 0; }
     .form-field > span, .split-field legend { color: var(--muted); font-size: 12px; font-weight: 750; }
@@ -364,6 +394,8 @@
       .budget-item:nth-child(3), .budget-item:nth-child(4) { border-bottom: 0; }
       .form-grid { grid-template-columns: 1fr 1fr; }
       .expense-form-bottom { grid-template-columns: 1fr; }
+      .sync-panel { grid-template-columns: 1fr; }
+      .sync-controls { justify-content: flex-start; }
       .form-actions { justify-content: flex-start; }
       .expense-summary { grid-template-columns: 1fr 1fr; }
       .expense-stat { border-bottom: 1px solid var(--line); }
@@ -526,7 +558,38 @@
 
     <section class="band white" id="expenses">
       <div class="shell">
-        <div class="section-head"><div><p class="section-kicker">Shared Ledger</p><h2>五人集体记账</h2></div><p class="subtle">记录只保存在当前浏览器</p></div>
+        <div class="section-head"><div><p class="section-kicker">Shared Ledger</p><h2>五人集体记账</h2></div><p class="subtle">云端同步 · 断网时保存在本机</p></div>
+
+        <div class="sync-panel" id="expenseSyncPanel" data-state="local" aria-live="polite">
+          <div class="sync-copy">
+            <div class="sync-title"><span class="sync-dot" aria-hidden="true"></span><span id="expenseSyncTitle">本地模式</span></div>
+            <span class="sync-detail" id="expenseSyncDetail">登录后与五人账本同步</span>
+          </div>
+          <div class="sync-controls" id="expenseSignedOut">
+            <div class="segmented sync-auth-modes" role="group" aria-label="登录方式">
+              <button class="segment-button" type="button" data-expense-auth-mode="password" aria-pressed="true">密码登录</button>
+              <button class="segment-button" type="button" data-expense-auth-mode="magic" aria-pressed="false">邮箱链接</button>
+            </div>
+            <label class="form-field sync-email"><span>成员邮箱</span><input id="expenseLoginEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com"></label>
+            <label class="form-field sync-password" id="expensePasswordField"><span>密码</span><input id="expenseLoginPassword" type="password" minlength="8" autocomplete="current-password" placeholder="至少 8 位"></label>
+            <button class="primary-button" id="expensePasswordLogin" type="button">登录</button>
+            <button class="secondary-button" id="expenseForgotPassword" type="button">设置/忘记密码</button>
+            <button class="primary-button" id="expenseSendLink" type="button" hidden>发送登录链接</button>
+          </div>
+          <div class="sync-controls" id="expenseSignedIn" hidden>
+            <span class="sync-detail" id="expenseSyncIdentity"></span>
+            <button class="secondary-button" id="expenseSyncNow" type="button">立即同步</button>
+            <button class="secondary-button" id="expenseSetPassword" type="button">设置密码</button>
+            <button class="secondary-button" id="expenseSignOut" type="button">退出</button>
+          </div>
+          <div class="sync-controls" id="expensePasswordReset" hidden>
+            <label class="form-field sync-password"><span>新密码</span><input id="expenseNewPassword" type="password" minlength="8" autocomplete="new-password" placeholder="至少 8 位"></label>
+            <label class="form-field sync-password"><span>确认新密码</span><input id="expenseConfirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="再次输入"></label>
+            <button class="primary-button" id="expenseSavePassword" type="button">保存新密码</button>
+            <button class="secondary-button" id="expenseCancelPassword" type="button">取消</button>
+          </div>
+          <p class="sync-message" id="expenseSyncMessage" hidden></p>
+        </div>
 
         <form class="expense-form" id="expenseForm">
           <div class="form-grid">
@@ -571,7 +634,7 @@
           <button class="secondary-button" id="exportExpenses" type="button">导出 CSV</button>
         </div>
         <div class="expense-list" id="expenseList" aria-live="polite"></div>
-        <p class="fine">金额按所选参与人平均分摊；这里记录的是集体账目，不会联网同步。清除浏览器数据会同时清除记账记录，请定期导出 CSV 备份。</p>
+        <p class="fine">金额按所选参与人平均分摊。登录后自动同步；未登录或断网时先保存在本机，恢复连接后上传。请定期导出 CSV 备份。</p>
       </div>
     </section>
 
@@ -1126,10 +1189,36 @@
 
     const travelers = ["转转", "媛媛", "恩浓", "邱允", "妹妹"];
     const expenseStorageKey = "jp-trip-expenses-v1";
+    const expenseQueueKey = "jp-trip-expense-sync-queue-v1";
+    const expenseMigrationKey = "jp-trip-expense-cloud-migrated-v1";
+    const expenseTripId = "japan-trip-2026";
+    const supabaseUrl = "https://zoflhmscphbbonaepbgh.supabase.co";
+    const supabasePublishableKey = "sb_publishable_R4i4VHhJ6WHU02dMR5cp_Q_rmOOvNek";
+    const publishedTripUrl = "https://adia-yy.github.io/japan-trip-2026/";
     const expenseForm = $("#expenseForm");
     const expenseList = $("#expenseList");
     let expenseFilter = "all";
     let editingExpenseId = null;
+    let expenseCloud = null;
+    let expenseCloudSession = null;
+    let expenseCloudMember = "";
+    let expenseCloudChannel = null;
+    let expenseSyncTimer = null;
+    let expenseSyncing = false;
+    let expenseSyncRequested = false;
+    let expensePasswordRecovery = new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
+
+    function createExpenseId() {
+      if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, char => {
+        const value = Math.random() * 16 | 0;
+        return (char === "x" ? value : (value & 3 | 8)).toString(16);
+      });
+    }
+
+    function isUuid(value) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+    }
 
     function loadExpenses() {
       try {
@@ -1143,7 +1232,8 @@
           payer: travelers.includes(item.payer) ? item.payer : travelers[0],
           participants: Array.isArray(item.participants) ? item.participants.filter(name => travelers.includes(name)) : [],
           settled: item.settled === true,
-          createdAt: Number(item.createdAt) || 0
+          createdAt: Number(item.createdAt) || 0,
+          updatedAt: Number(item.updatedAt) || Number(item.createdAt) || 0
         })).filter(item => item.id && item.description && item.amount > 0 && item.participants.length);
       } catch (_) {
         return [];
@@ -1161,6 +1251,389 @@
         return false;
       }
     }
+
+    let upgradedExpenseIds = false;
+    expenses = expenses.map(item => {
+      if (isUuid(item.id)) return item;
+      upgradedExpenseIds = true;
+      return { ...item, id: createExpenseId(), updatedAt: Date.now() };
+    });
+    if (upgradedExpenseIds) saveExpenses();
+
+    function loadExpenseQueue() {
+      try {
+        const queue = JSON.parse(localStorage.getItem(expenseQueueKey) || "[]");
+        return Array.isArray(queue) ? queue.filter(item => item && ["upsert", "delete"].includes(item.type) && isUuid(item.id)) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveExpenseQueue(queue) {
+      try {
+        localStorage.setItem(expenseQueueKey, JSON.stringify(queue));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function queueExpenseOperation(type, itemOrId, schedule = true) {
+      const id = typeof itemOrId === "string" ? itemOrId : itemOrId.id;
+      const queue = loadExpenseQueue().filter(operation => operation.id !== id);
+      const operation = { type, id, nonce: createExpenseId(), queuedAt: Date.now() };
+      if (type === "upsert") operation.item = { ...itemOrId, participants: [...itemOrId.participants] };
+      queue.push(operation);
+      saveExpenseQueue(queue);
+      if (schedule) scheduleExpenseCloudSync();
+    }
+
+    function setExpenseSyncStatus(state, title, detail) {
+      $("#expenseSyncPanel").dataset.state = state;
+      $("#expenseSyncTitle").textContent = title;
+      $("#expenseSyncDetail").textContent = detail;
+    }
+
+    function setExpenseSyncMessage(message = "", kind = "error") {
+      const node = $("#expenseSyncMessage");
+      node.textContent = message;
+      node.dataset.kind = kind;
+      node.hidden = !message;
+    }
+
+    function setExpenseAuthView(session, memberName = "") {
+      $("#expenseSignedOut").hidden = Boolean(session) || expensePasswordRecovery;
+      $("#expenseSignedIn").hidden = !session || expensePasswordRecovery;
+      $("#expensePasswordReset").hidden = !expensePasswordRecovery;
+      $("#expenseSyncIdentity").textContent = memberName ? `${memberName} · 已登录` : "正在验证成员身份";
+      $("#expenseSyncNow").disabled = !memberName;
+    }
+
+    function setExpenseAuthMode(mode) {
+      const passwordMode = mode === "password";
+      $("#expensePasswordField").hidden = !passwordMode;
+      $("#expensePasswordLogin").hidden = !passwordMode;
+      $("#expenseForgotPassword").hidden = !passwordMode;
+      $("#expenseSendLink").hidden = passwordMode;
+      $$('[data-expense-auth-mode]').forEach(button => button.setAttribute("aria-pressed", String(button.dataset.expenseAuthMode === mode)));
+      setExpenseSyncMessage();
+    }
+
+    function expenseAuthRedirectUrl() {
+      return location.protocol === "https:" || location.protocol === "http:" ? `${location.origin}${location.pathname}` : publishedTripUrl;
+    }
+
+    function remoteExpenseToLocal(item) {
+      return {
+        id: item.id,
+        description: item.description,
+        date: item.expense_date,
+        amount: Number(item.amount_jpy),
+        payer: item.payer,
+        participants: Array.isArray(item.participants) ? item.participants.filter(name => travelers.includes(name)) : [],
+        settled: item.settled === true,
+        createdAt: Date.parse(item.created_at) || 0,
+        updatedAt: Date.parse(item.updated_at) || 0
+      };
+    }
+
+    function localExpenseToRemote(item) {
+      return {
+        id: item.id,
+        trip_id: expenseTripId,
+        description: item.description,
+        expense_date: item.date,
+        amount_jpy: item.amount,
+        payer: item.payer,
+        participants: item.participants,
+        settled: item.settled
+      };
+    }
+
+    async function flushExpenseQueue() {
+      const snapshot = loadExpenseQueue();
+      for (const operation of snapshot) {
+        let result;
+        if (operation.type === "delete") {
+          result = await expenseCloud.from("expenses").delete().eq("trip_id", expenseTripId).eq("id", operation.id);
+        } else {
+          result = await expenseCloud.from("expenses").upsert(localExpenseToRemote(operation.item), { onConflict: "id" });
+        }
+        if (result.error) throw result.error;
+        const latest = loadExpenseQueue().filter(item => item.nonce !== operation.nonce);
+        saveExpenseQueue(latest);
+      }
+    }
+
+    async function pullCloudExpenses() {
+      const { data, error } = await expenseCloud.from("expenses")
+        .select("id,description,expense_date,amount_jpy,payer,participants,settled,created_at,updated_at")
+        .eq("trip_id", expenseTripId)
+        .order("expense_date", { ascending: false });
+      if (error) throw error;
+      expenses = (data || []).map(remoteExpenseToLocal).filter(item => item.description && item.amount > 0 && item.participants.length);
+      saveExpenses();
+      renderExpenses();
+    }
+
+    async function syncExpensesCloud() {
+      if (!expenseCloudSession || !expenseCloudMember) return;
+      if (expenseSyncing) {
+        expenseSyncRequested = true;
+        return;
+      }
+      expenseSyncing = true;
+      expenseSyncRequested = false;
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("syncing", "正在同步", "上传本地变更并获取最新账目");
+      try {
+        if (localStorage.getItem(expenseMigrationKey) !== "1") {
+          expenses.forEach(item => queueExpenseOperation("upsert", item, false));
+        }
+        await flushExpenseQueue();
+        await pullCloudExpenses();
+        localStorage.setItem(expenseMigrationKey, "1");
+        const time = new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date());
+        setExpenseSyncStatus("online", "云端已同步", `${expenseCloudMember} · 最近同步 ${time}`);
+      } catch (error) {
+        const offline = !navigator.onLine;
+        setExpenseSyncStatus(offline ? "offline" : "error", offline ? "离线模式" : "同步失败", offline ? "变更已保存在本机，联网后自动重试" : "本地记录未丢失，可稍后重试");
+        setExpenseSyncMessage(offline ? "" : `同步失败：${error.message || "请检查数据库配置"}`);
+      } finally {
+        expenseSyncing = false;
+        if (expenseSyncRequested) scheduleExpenseCloudSync(100);
+      }
+    }
+
+    function scheduleExpenseCloudSync(delay = 250) {
+      if (!expenseCloudSession || !expenseCloudMember) return;
+      clearTimeout(expenseSyncTimer);
+      expenseSyncTimer = setTimeout(syncExpensesCloud, delay);
+    }
+
+    async function subscribeToExpenseChanges() {
+      if (expenseCloudChannel) await expenseCloud.removeChannel(expenseCloudChannel);
+      expenseCloudChannel = expenseCloud.channel(`expenses-${expenseTripId}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "expenses" }, () => scheduleExpenseCloudSync(150))
+        .subscribe(status => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            setExpenseSyncStatus("offline", "连接中断", "本地记录继续可用，恢复连接后自动同步");
+          }
+        });
+    }
+
+    async function handleExpenseSession(session, authEvent = "") {
+      if (authEvent === "PASSWORD_RECOVERY") expensePasswordRecovery = true;
+      if (authEvent === "SIGNED_OUT") expensePasswordRecovery = false;
+      expenseCloudSession = session;
+      expenseCloudMember = "";
+      setExpenseAuthView(session);
+      if (!session) {
+        if (expenseCloudChannel) await expenseCloud.removeChannel(expenseCloudChannel);
+        expenseCloudChannel = null;
+        setExpenseSyncStatus("local", "本地模式", "输入成员邮箱登录五人共享账本");
+        return;
+      }
+      if (expensePasswordRecovery) {
+        setExpenseSyncStatus("syncing", "设置新密码", "请输入至少 8 位的新密码");
+        setExpenseSyncMessage("密码只会提交给 Supabase Auth，不会保存在网页中。", "success");
+        $("#expenseNewPassword").focus({ preventScroll: true });
+        return;
+      }
+      setExpenseSyncStatus("syncing", "正在验证", "检查五人行成员权限");
+      const { data, error } = await expenseCloud.from("trip_members")
+        .select("display_name")
+        .eq("trip_id", expenseTripId)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      if (error || !data) {
+        setExpenseSyncStatus("error", "无账本权限", "当前邮箱不在五人行成员名单中");
+        setExpenseSyncMessage(error ? `验证失败：${error.message}` : "请使用已登记的成员邮箱登录");
+        setExpenseAuthView(session);
+        return;
+      }
+      expenseCloudMember = data.display_name;
+      setExpenseAuthView(session, expenseCloudMember);
+      await subscribeToExpenseChanges();
+      await syncExpensesCloud();
+    }
+
+    let supabaseLibraryPromise = null;
+    function loadSupabaseLibrary() {
+      if (globalThis.supabase?.createClient) return Promise.resolve(globalThis.supabase);
+      if (supabaseLibraryPromise) return supabaseLibraryPromise;
+      supabaseLibraryPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js";
+        script.crossOrigin = "anonymous";
+        script.referrerPolicy = "no-referrer";
+        script.onload = () => resolve(globalThis.supabase);
+        script.onerror = () => reject(new Error("无法加载云同步组件"));
+        document.head.appendChild(script);
+      });
+      return supabaseLibraryPromise;
+    }
+
+    async function initializeExpenseCloud() {
+      ["#expenseSendLink", "#expensePasswordLogin", "#expenseForgotPassword"].forEach(selector => $(selector).disabled = true);
+      setExpenseSyncStatus("syncing", "连接云端", "正在初始化五人共享账本");
+      try {
+        const library = await loadSupabaseLibrary();
+        expenseCloud = library.createClient(supabaseUrl, supabasePublishableKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        expenseCloud.auth.onAuthStateChange((event, session) => {
+          setTimeout(() => handleExpenseSession(session, event), 0);
+        });
+        const { data, error } = await expenseCloud.auth.getSession();
+        if (error) throw error;
+        await handleExpenseSession(data.session);
+      } catch (error) {
+        setExpenseSyncStatus("offline", "本地模式", "云同步暂不可用，本地记账不受影响");
+        setExpenseSyncMessage(error.message || "无法连接云端");
+      } finally {
+        ["#expenseSendLink", "#expensePasswordLogin", "#expenseForgotPassword"].forEach(selector => $(selector).disabled = false);
+      }
+    }
+
+    $$('[data-expense-auth-mode]').forEach(button => button.addEventListener("click", () => setExpenseAuthMode(button.dataset.expenseAuthMode)));
+
+    $("#expensePasswordLogin").addEventListener("click", async () => {
+      const emailInput = $("#expenseLoginEmail");
+      const passwordInput = $("#expenseLoginPassword");
+      const email = emailInput.value.trim().toLowerCase();
+      if (!emailInput.checkValidity() || !email) {
+        emailInput.reportValidity();
+        return;
+      }
+      if (!passwordInput.checkValidity() || !passwordInput.value) {
+        passwordInput.reportValidity();
+        return;
+      }
+      if (!expenseCloud) await initializeExpenseCloud();
+      if (!expenseCloud) return;
+      const button = $("#expensePasswordLogin");
+      button.disabled = true;
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("syncing", "正在登录", "验证成员邮箱和密码");
+      const { error } = await expenseCloud.auth.signInWithPassword({ email, password: passwordInput.value });
+      passwordInput.value = "";
+      button.disabled = false;
+      if (error) {
+        setExpenseSyncStatus("error", "登录失败", "请检查邮箱和密码");
+        setExpenseSyncMessage(error.message === "Invalid login credentials" ? "邮箱或密码不正确；首次使用请先设置密码。" : error.message);
+      }
+    });
+
+    $("#expenseForgotPassword").addEventListener("click", async () => {
+      const input = $("#expenseLoginEmail");
+      const email = input.value.trim().toLowerCase();
+      if (!input.checkValidity() || !email) {
+        input.reportValidity();
+        return;
+      }
+      if (!expenseCloud) await initializeExpenseCloud();
+      if (!expenseCloud) return;
+      const button = $("#expenseForgotPassword");
+      button.disabled = true;
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("syncing", "正在发送", "发送密码设置邮件");
+      const { error } = await expenseCloud.auth.resetPasswordForEmail(email, { redirectTo: expenseAuthRedirectUrl() });
+      button.disabled = false;
+      if (error) {
+        setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
+        setExpenseSyncMessage(error.message);
+        return;
+      }
+      setExpenseSyncStatus("local", "密码邮件已发送", "打开邮件链接后回到这里设置新密码");
+      setExpenseSyncMessage("邮件可能需要几分钟到达，请同时检查垃圾邮件。", "success");
+    });
+
+    $("#expenseSetPassword").addEventListener("click", () => {
+      if (!expenseCloudSession) return;
+      expensePasswordRecovery = true;
+      setExpenseAuthView(expenseCloudSession, expenseCloudMember);
+      setExpenseSyncStatus("syncing", "设置新密码", "请输入至少 8 位的新密码");
+      setExpenseSyncMessage("当前会话已验证，可以直接设置密码。", "success");
+      $("#expenseNewPassword").focus({ preventScroll: true });
+    });
+
+    $("#expenseCancelPassword").addEventListener("click", () => {
+      expensePasswordRecovery = false;
+      $("#expenseNewPassword").value = "";
+      $("#expenseConfirmPassword").value = "";
+      $("#expenseConfirmPassword").setCustomValidity("");
+      setExpenseAuthView(expenseCloudSession, expenseCloudMember);
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("online", "云端已同步", `${expenseCloudMember} · 已登录`);
+    });
+
+    $("#expenseSavePassword").addEventListener("click", async () => {
+      const password = $("#expenseNewPassword");
+      const confirmation = $("#expenseConfirmPassword");
+      if (!password.checkValidity() || !password.value) {
+        password.reportValidity();
+        return;
+      }
+      if (password.value !== confirmation.value) {
+        confirmation.setCustomValidity("两次输入的密码不一致");
+        confirmation.reportValidity();
+        return;
+      }
+      confirmation.setCustomValidity("");
+      const button = $("#expenseSavePassword");
+      button.disabled = true;
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("syncing", "正在保存", "更新 Supabase 登录密码");
+      const { error } = await expenseCloud.auth.updateUser({ password: password.value });
+      password.value = "";
+      confirmation.value = "";
+      button.disabled = false;
+      if (error) {
+        setExpenseSyncStatus("error", "保存失败", "请重新打开密码设置邮件后再试");
+        setExpenseSyncMessage(error.message);
+        return;
+      }
+      expensePasswordRecovery = false;
+      setExpenseSyncMessage("密码已设置，后续可以直接使用邮箱和密码登录。", "success");
+      await handleExpenseSession(expenseCloudSession, "USER_UPDATED");
+    });
+
+    $("#expenseSendLink").addEventListener("click", async () => {
+      const input = $("#expenseLoginEmail");
+      const email = input.value.trim().toLowerCase();
+      if (!input.checkValidity() || !email) {
+        input.reportValidity();
+        return;
+      }
+      if (!expenseCloud) await initializeExpenseCloud();
+      if (!expenseCloud) return;
+      const button = $("#expenseSendLink");
+      button.disabled = true;
+      setExpenseSyncMessage();
+      setExpenseSyncStatus("syncing", "正在发送", "请稍候");
+      const { error } = await expenseCloud.auth.signInWithOtp({ email, options: { emailRedirectTo: expenseAuthRedirectUrl(), shouldCreateUser: true } });
+      button.disabled = false;
+      if (error) {
+        setExpenseSyncStatus("error", "发送失败", "本地记账仍可继续使用");
+        setExpenseSyncMessage(error.message);
+        return;
+      }
+      setExpenseSyncStatus("local", "登录链接已发送", "请到邮箱打开链接，返回网页后将自动同步");
+      setExpenseSyncMessage("邮件可能需要几分钟到达，请同时检查垃圾邮件。", "success");
+    });
+
+    $("#expenseSyncNow").addEventListener("click", syncExpensesCloud);
+    $("#expenseSignOut").addEventListener("click", async () => {
+      if (!expenseCloud) return;
+      await expenseCloud.auth.signOut();
+      setExpenseSyncMessage();
+    });
+    window.addEventListener("online", () => scheduleExpenseCloudSync(100));
+    window.addEventListener("offline", () => {
+      if (expenseCloudSession) setExpenseSyncStatus("offline", "离线模式", "变更已保存在本机，联网后自动重试");
+    });
+    setExpenseAuthMode("password");
 
     function formatJpy(value) {
       return `JPY ${Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 1 })}`;
@@ -1278,15 +1751,17 @@
       }
       const amount = Math.round(Number($("#expenseAmount").value));
       if (!Number.isFinite(amount) || amount < 1) return;
+      const now = Date.now();
       const item = {
-        id: editingExpenseId || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
+        id: editingExpenseId || createExpenseId(),
         description: $("#expenseDescription").value.trim(),
         date: $("#expenseDate").value,
         amount,
         payer: $("#expensePayer").value,
         participants,
         settled: $("#expenseSettled").value === "true",
-        createdAt: Date.now()
+        createdAt: now,
+        updatedAt: now
       };
       if (!item.description) return;
       if (editingExpenseId) {
@@ -1297,6 +1772,7 @@
         expenses.push(item);
       }
       if (saveExpenses()) {
+        queueExpenseOperation("upsert", item);
         resetExpenseForm();
         renderExpenses();
       }
@@ -1313,7 +1789,10 @@
         if (!confirm(`删除“${item.description}”这笔记录？`)) return;
         expenses = expenses.filter(expense => expense.id !== item.id);
         if (editingExpenseId === item.id) resetExpenseForm();
-        if (saveExpenses()) renderExpenses();
+        if (saveExpenses()) {
+          queueExpenseOperation("delete", item.id);
+          renderExpenses();
+        }
         return;
       }
       editingExpenseId = item.id;
@@ -1352,12 +1831,15 @@
     });
 
     window.addEventListener("storage", event => {
-      if (event.key !== expenseStorageKey) return;
-      expenses = loadExpenses();
-      renderExpenses();
+      if (event.key === expenseStorageKey) {
+        expenses = loadExpenses();
+        renderExpenses();
+      }
+      if (event.key === expenseQueueKey) scheduleExpenseCloudSync(100);
     });
     resetExpenseForm();
     renderExpenses();
+    initializeExpenseCloud();
 
     window.addEventListener("load", () => {
       const section = new URLSearchParams(location.search).get("section") || location.hash.slice(1);
