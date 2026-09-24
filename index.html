@@ -356,6 +356,19 @@
     .record-actions { display: flex; gap: 6px; }
     .record-icon { width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; font-weight: 800; }
     .record-icon.delete { color: #8c2a24; }
+    .payment-breakdown { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line); }
+    .payment-breakdown-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
+    .payment-breakdown-head strong { font-size: 13px; }
+    .payment-breakdown-head small { color: var(--muted); }
+    .payment-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+    .payment-person { min-width: 0; padding: 9px; border-left: 3px solid #aab2ae; background: #f4f6f5; }
+    .payment-person.is-paid { border-left-color: var(--green); background: var(--green-soft); }
+    .payment-person.is-pending { border-left-color: var(--gold); background: var(--gold-soft); }
+    .payment-person b, .payment-person small { display: block; overflow-wrap: anywhere; }
+    .payment-person small { margin-top: 2px; color: var(--muted); }
+    .payment-state { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; margin-top: 6px; font-size: 12px; font-weight: 750; }
+    .payment-state input { width: 17px; height: 17px; accent-color: var(--green); }
+    .payment-state input:disabled { cursor: not-allowed; }
 
     .source-list { margin: 0; padding-left: 20px; }
     .source-list li + li { margin-top: 7px; }
@@ -415,6 +428,7 @@
       .expense-record { grid-template-columns: 1fr 1fr; gap: 9px 14px; }
       .expense-record .record-description, .expense-record .record-participants { grid-column: 1 / -1; }
       .record-actions { justify-content: flex-end; }
+      .payment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .day summary { grid-template-columns: 58px 1fr auto; gap: 9px; padding: 16px 12px; }
       .day-title strong { font-size: 16px; }
       .day-body { padding: 0 12px 16px; }
@@ -438,6 +452,7 @@
       .expense-stat { border-right: 0; border-bottom: 1px solid var(--line) !important; }
       .expense-stat:last-child { border-bottom: 0 !important; }
       .member-split { grid-template-columns: 1fr; }
+      .payment-grid { grid-template-columns: 1fr; }
       .segmented { width: 100%; }
       .segment-button { flex: 1; padding-inline: 5px; }
       .food-dialog-body { padding-inline: 50px; }
@@ -656,7 +671,7 @@
           <button class="secondary-button" id="exportExpenses" type="button">导出 CSV</button>
         </div>
         <div class="expense-list" id="expenseList" aria-live="polite"></div>
-        <p class="fine">金额按所选参与人平均分摊。人民币录入按当前参考汇率折算后，以 JPY 作为云端结算基准；切换显示币种不会修改历史账目。请定期导出 CSV 备份。</p>
+        <p class="fine">金额按所选参与人平均分摊。每笔支出由付款人维护参与成员的支付状态，其他成员只读；离线时可查看上次同步结果。人民币录入按当前参考汇率折算后，以 JPY 作为云端结算基准。</p>
       </div>
     </section>
 
@@ -1211,6 +1226,7 @@
 
     const travelers = ["转转", "媛媛", "恩浓", "邱允", "妹妹"];
     const expenseStorageKey = "jp-trip-expenses-v1";
+    const expensePaymentsStorageKey = "jp-trip-expense-payments-v1";
     const expenseQueueKey = "jp-trip-expense-sync-queue-v1";
     const expenseMigrationKey = "jp-trip-expense-cloud-migrated-v1";
     const expenseCurrencyKey = "jp-trip-expense-currency-v1";
@@ -1288,6 +1304,32 @@
     }
 
     let expenses = loadExpenses();
+
+    function loadExpensePayments() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(expensePaymentsStorageKey) || "{}");
+        if (!saved || typeof saved !== "object" || Array.isArray(saved)) return {};
+        return Object.fromEntries(Object.entries(saved).flatMap(([expenseId, statuses]) => {
+          if (!isUuid(expenseId) || !statuses || typeof statuses !== "object" || Array.isArray(statuses)) return [];
+          const validStatuses = Object.fromEntries(Object.entries(statuses).filter(([name, paid]) => travelers.includes(name) && typeof paid === "boolean"));
+          return [[expenseId, validStatuses]];
+        }));
+      } catch (_) {
+        return {};
+      }
+    }
+
+    let expensePayments = loadExpensePayments();
+    const expensePaymentSaving = new Set();
+
+    function saveExpensePayments() {
+      try {
+        localStorage.setItem(expensePaymentsStorageKey, JSON.stringify(expensePayments));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
 
     function saveExpenses() {
       try {
@@ -1423,13 +1465,27 @@
     }
 
     async function pullCloudExpenses() {
-      const { data, error } = await expenseCloud.from("expenses")
-        .select("id,description,expense_date,amount_jpy,payer,participants,settled,created_at,updated_at")
-        .eq("trip_id", expenseTripId)
-        .order("expense_date", { ascending: false });
-      if (error) throw error;
-      expenses = (data || []).map(remoteExpenseToLocal).filter(item => item.description && item.amount > 0 && item.participants.length);
+      const [expenseResult, paymentResult] = await Promise.all([
+        expenseCloud.from("expenses")
+          .select("id,description,expense_date,amount_jpy,payer,participants,settled,created_at,updated_at")
+          .eq("trip_id", expenseTripId)
+          .order("expense_date", { ascending: false }),
+        expenseCloud.from("expense_participant_payments")
+          .select("expense_id,participant,paid,updated_at")
+          .eq("trip_id", expenseTripId)
+      ]);
+      if (expenseResult.error) throw expenseResult.error;
+      if (paymentResult.error) throw paymentResult.error;
+      expenses = (expenseResult.data || []).map(remoteExpenseToLocal).filter(item => item.description && item.amount > 0 && item.participants.length);
+      const expenseIds = new Set(expenses.map(item => item.id));
+      expensePayments = {};
+      (paymentResult.data || []).forEach(payment => {
+        if (!expenseIds.has(payment.expense_id) || !travelers.includes(payment.participant) || typeof payment.paid !== "boolean") return;
+        if (!expensePayments[payment.expense_id]) expensePayments[payment.expense_id] = {};
+        expensePayments[payment.expense_id][payment.participant] = payment.paid;
+      });
       saveExpenses();
+      saveExpensePayments();
       renderExpenses();
     }
 
@@ -1471,7 +1527,8 @@
     async function subscribeToExpenseChanges() {
       if (expenseCloudChannel) await expenseCloud.removeChannel(expenseCloudChannel);
       expenseCloudChannel = expenseCloud.channel(`expenses-${expenseTripId}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "expenses" }, () => scheduleExpenseCloudSync(150))
+        .on("postgres_changes", { event: "*", schema: "public", table: "expenses", filter: `trip_id=eq.${expenseTripId}` }, () => scheduleExpenseCloudSync(150))
+        .on("postgres_changes", { event: "*", schema: "public", table: "expense_participant_payments", filter: `trip_id=eq.${expenseTripId}` }, () => scheduleExpenseCloudSync(150))
         .subscribe(status => {
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             setExpenseSyncStatus("offline", "连接中断", "本地记录继续可用，恢复连接后自动同步");
@@ -1484,6 +1541,7 @@
       expenseCloudSession = session;
       expenseCloudMember = "";
       setExpenseAuthView(session);
+      renderExpenses();
       if (!session) {
         if (expenseCloudChannel) await expenseCloud.removeChannel(expenseCloudChannel);
         expenseCloudChannel = null;
@@ -1510,6 +1568,7 @@
       }
       expenseCloudMember = data.display_name;
       setExpenseAuthView(session, expenseCloudMember);
+      renderExpenses();
       await subscribeToExpenseChanges();
       await syncExpensesCloud();
     }
@@ -1716,10 +1775,12 @@
       setExpenseSyncMessage();
     });
     window.addEventListener("online", () => {
+      renderExpenses();
       scheduleExpenseCloudSync(100);
       refreshExpenseRate();
     });
     window.addEventListener("offline", () => {
+      renderExpenses();
       if (expenseCloudSession) setExpenseSyncStatus("offline", "离线模式", "变更已保存在本机，联网后自动重试");
     });
     setExpenseAuthMode("login");
@@ -1846,6 +1907,70 @@
       return content;
     }
 
+    function isExpenseParticipantPaid(item, name) {
+      const statuses = expensePayments[item.id];
+      if (statuses && Object.prototype.hasOwnProperty.call(statuses, name)) return statuses[name] === true;
+      return item.settled;
+    }
+
+    function expenseParticipantStatus(item, name) {
+      if (!item.participants.includes(name)) return "不参与";
+      if (name === item.payer) return "已垫付";
+      return isExpenseParticipantPaid(item, name) ? "已支付" : "待支付";
+    }
+
+    function appendExpensePaymentBreakdown(record, item) {
+      const breakdown = document.createElement("div");
+      breakdown.className = "payment-breakdown";
+      const heading = document.createElement("div");
+      heading.className = "payment-breakdown-head";
+      const title = document.createElement("strong");
+      title.textContent = "每人应付与支付状态";
+      const note = document.createElement("small");
+      note.textContent = expenseCloudMember === item.payer
+        ? (navigator.onLine ? "你是付款人，可更新参与者的支付状态" : "离线时仅可查看，联网后可更新")
+        : `仅付款人 ${item.payer} 可更新状态`;
+      heading.append(title, note);
+
+      const grid = document.createElement("div");
+      grid.className = "payment-grid";
+      const share = item.amount / item.participants.length;
+      travelers.forEach(name => {
+        const participating = item.participants.includes(name);
+        const isPayer = name === item.payer;
+        const paid = participating && (isPayer || isExpenseParticipantPaid(item, name));
+        const cell = document.createElement("div");
+        cell.className = `payment-person${!participating ? "" : paid ? " is-paid" : " is-pending"}`;
+        const person = document.createElement("b");
+        person.textContent = name;
+        const amount = document.createElement("small");
+        amount.textContent = participating ? `应付 ${formatExpenseMoney(share)}` : "不参与本笔分摊";
+        const state = document.createElement("div");
+        state.className = "payment-state";
+
+        if (participating && !isPayer && expenseCloudSession && expenseCloudMember === item.payer && navigator.onLine) {
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+          const savingKey = `${item.id}:${name}`;
+          input.type = "checkbox";
+          input.checked = paid;
+          input.disabled = expensePaymentSaving.has(savingKey);
+          input.dataset.paymentExpenseId = item.id;
+          input.dataset.paymentParticipant = name;
+          const labelText = document.createElement("span");
+          labelText.textContent = expensePaymentSaving.has(savingKey) ? "保存中" : (paid ? "已支付" : "待支付");
+          label.append(input, labelText);
+          state.appendChild(label);
+        } else {
+          state.textContent = expenseParticipantStatus(item, name);
+        }
+        cell.append(person, amount, state);
+        grid.appendChild(cell);
+      });
+      breakdown.append(heading, grid);
+      record.appendChild(breakdown);
+    }
+
     function renderExpenses() {
       const total = expenses.reduce((sum, item) => sum + item.amount, 0);
       const outstanding = expenses.filter(item => !item.settled).reduce((sum, item) => sum + item.amount, 0);
@@ -1920,6 +2045,7 @@
         remove.textContent = "×";
         actions.append(edit, remove);
         record.appendChild(actions);
+        appendExpensePaymentBreakdown(record, item);
         expenseList.appendChild(record);
       });
     }
@@ -1969,6 +2095,10 @@
         expenses.push(item);
       }
       if (saveExpenses()) {
+        if (expensePayments[item.id]) {
+          expensePayments[item.id] = Object.fromEntries(Object.entries(expensePayments[item.id]).filter(([name]) => participants.includes(name)));
+          saveExpensePayments();
+        }
         queueExpenseOperation("upsert", item);
         resetExpenseForm();
         renderExpenses();
@@ -1985,8 +2115,10 @@
       if (button.dataset.action === "delete") {
         if (!confirm(`删除“${item.description}”这笔记录？`)) return;
         expenses = expenses.filter(expense => expense.id !== item.id);
+        delete expensePayments[item.id];
         if (editingExpenseId === item.id) resetExpenseForm();
         if (saveExpenses()) {
+          saveExpensePayments();
           queueExpenseOperation("delete", item.id);
           renderExpenses();
         }
@@ -2004,6 +2136,52 @@
       expenseForm.scrollIntoView({ behavior: "smooth", block: "start" });
       $("#expenseDescription").focus({ preventScroll: true });
       updateExpenseAmountPreview();
+    });
+
+    expenseList.addEventListener("change", async event => {
+      const input = event.target.closest("input[data-payment-expense-id]");
+      if (!input) return;
+      const item = expenses.find(expense => expense.id === input.dataset.paymentExpenseId);
+      const participant = input.dataset.paymentParticipant;
+      const previousPaid = item ? isExpenseParticipantPaid(item, participant) : !input.checked;
+      if (!item || !travelers.includes(participant) || !item.participants.includes(participant) || participant === item.payer) {
+        input.checked = previousPaid;
+        return;
+      }
+      if (!expenseCloudSession || expenseCloudMember !== item.payer) {
+        input.checked = previousPaid;
+        setExpenseSyncMessage(`只有付款人 ${item.payer} 可以更新这笔支出的支付状态。`);
+        return;
+      }
+      if (!navigator.onLine) {
+        input.checked = previousPaid;
+        setExpenseSyncMessage("当前处于离线状态，联网后再更新支付状态。");
+        return;
+      }
+
+      const paid = input.checked;
+      const savingKey = `${item.id}:${participant}`;
+      expensePaymentSaving.add(savingKey);
+      renderExpenses();
+      setExpenseSyncMessage();
+      try {
+        const { error } = await expenseCloud.from("expense_participant_payments").upsert({
+          expense_id: item.id,
+          trip_id: expenseTripId,
+          participant,
+          paid
+        }, { onConflict: "expense_id,participant" });
+        if (error) throw error;
+        if (!expensePayments[item.id]) expensePayments[item.id] = {};
+        expensePayments[item.id][participant] = paid;
+        saveExpensePayments();
+        setExpenseSyncMessage(`${participant} 已更新为${paid ? "已支付" : "待支付"}。`, "success");
+      } catch (error) {
+        setExpenseSyncMessage(`支付状态更新失败：${error.message || "请稍后重试"}`);
+      } finally {
+        expensePaymentSaving.delete(savingKey);
+        renderExpenses();
+      }
     });
 
     $$('[data-expense-currency]').forEach(button => button.addEventListener("click", () => setExpenseCurrency(button.dataset.expenseCurrency)));
@@ -2047,7 +2225,7 @@
         return;
       }
       const escapeCsv = value => `"${String(value).replaceAll('"', '""')}"`;
-      const rows = [["日期", "支出项目", "JPY金额", "CNY折算", "参考汇率（100 JPY = CNY）", "汇率数据日期", "汇率来源", "付款人", "参与分摊人员", "结算状态"], ...expenses.map(item => [item.date, item.description, item.amount, jpyToCny(item.amount).toFixed(2), expenseCnyPer100Jpy.toFixed(4), expenseRateDate, expenseRateSource, item.payer, item.participants.join("、"), item.settled ? "已结清" : "未结清"])];
+      const rows = [["日期", "支出项目", "JPY金额", "CNY折算", "参考汇率（100 JPY = CNY）", "汇率数据日期", "汇率来源", "付款人", "参与分摊人员", "结算状态", ...travelers.map(name => `${name}支付状态`)], ...expenses.map(item => [item.date, item.description, item.amount, jpyToCny(item.amount).toFixed(2), expenseCnyPer100Jpy.toFixed(4), expenseRateDate, expenseRateSource, item.payer, item.participants.join("、"), item.settled ? "已结清" : "未结清", ...travelers.map(name => expenseParticipantStatus(item, name))])];
       const csv = `\ufeff${rows.map(row => row.map(escapeCsv).join(",")).join("\r\n")}`;
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
       const link = document.createElement("a");
@@ -2060,6 +2238,10 @@
     window.addEventListener("storage", event => {
       if (event.key === expenseStorageKey) {
         expenses = loadExpenses();
+        renderExpenses();
+      }
+      if (event.key === expensePaymentsStorageKey) {
+        expensePayments = loadExpensePayments();
         renderExpenses();
       }
       if (event.key === expenseQueueKey) scheduleExpenseCloudSync(100);
